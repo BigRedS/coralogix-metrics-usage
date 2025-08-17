@@ -1,0 +1,846 @@
+container_fs_usage_bytes:
+  eks_amazonaws_com_compute_type:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count (count by (k8s_node_name)(container_fs_usage_bytes{eks_amazonaws_com_compute_type="",pod="",k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_cluster_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count (count by (k8s_node_name)(container_fs_usage_bytes{eks_amazonaws_com_compute_type="",pod="",k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count (count by (k8s_node_name)(container_fs_usage_bytes{eks_amazonaws_com_compute_type="",pod="",k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  pod:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count (count by (k8s_node_name)(container_fs_usage_bytes{eks_amazonaws_com_compute_type="",pod="",k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+cx_data_plan_units_per_day:
+  _:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - "((sum(cx_data_usage_units) / max(cx_data_plan_units_per_day))  - ((time()
+          % 86400) / 86400)) * 100 "
+cx_data_usage_bytes_total:
+  _:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - "max(increase(cx_data_usage_bytes_total[1h])) * 24
+
+          "
+  application_name:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - sum(cx_data_usage_bytes_total{application_name=~".+"}) by (application_name)
+  pillar:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - sum(cx_data_usage_bytes_total{subsystem_name=~".+", pillar="logs"}) by (subsystem_name)
+  priority:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - sum(cx_data_usage_bytes_total{}) by (pillar,priority)
+  subsystem_name:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - sum(cx_data_usage_bytes_total{subsystem_name=~".+", pillar="logs"}) by (subsystem_name)
+cx_data_usage_units:
+  _:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - "max(increase(cx_data_usage_units[1h])) * 24
+
+          "
+  application_name:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - sum(cx_data_usage_units{application_name=~".+"}) by (application_name)
+  pillar:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - sum(cx_data_usage_units{subsystem_name=~".+", pillar="logs"}) by (subsystem_name)
+  priority:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - sum(cx_data_usage_units{}) by (pillar,priority)
+  subsystem_name:
+    dashboards:
+      icErszlxXE7ttjqwu-tH_:
+        - sum(cx_data_usage_units{subsystem_name=~".+", pillar="logs"}) by (subsystem_name)
+k8s_cluster_name:
+  k8s_cluster_name:
+    alerts:
+      8c2a831d-6bf3-4066-9dc9-dc6e481248b5:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 3
+      f7ddec45-9cdc-4fa2-84d4-b9f08aa2fd32:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 2
+  k8s_namespace_name:
+    alerts:
+      8c2a831d-6bf3-4066-9dc9-dc6e481248b5:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 3
+      f7ddec45-9cdc-4fa2-84d4-b9f08aa2fd32:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 2
+  k8s_pod_name:
+    alerts:
+      8c2a831d-6bf3-4066-9dc9-dc6e481248b5:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 3
+      f7ddec45-9cdc-4fa2-84d4-b9f08aa2fd32:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 2
+k8s_container_name:
+  k8s_cluster_name:
+    alerts:
+      8c2a831d-6bf3-4066-9dc9-dc6e481248b5:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 3
+      f7ddec45-9cdc-4fa2-84d4-b9f08aa2fd32:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 2
+  k8s_namespace_name:
+    alerts:
+      8c2a831d-6bf3-4066-9dc9-dc6e481248b5:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 3
+      f7ddec45-9cdc-4fa2-84d4-b9f08aa2fd32:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 2
+  k8s_pod_name:
+    alerts:
+      8c2a831d-6bf3-4066-9dc9-dc6e481248b5:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 3
+      f7ddec45-9cdc-4fa2-84d4-b9f08aa2fd32:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 2
+k8s_container_ready:
+  container_id:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count(count by (container_id) (k8s_container_ready{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_cluster_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count(count by (container_id) (k8s_container_ready{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count(count by (container_id) (k8s_container_ready{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+k8s_container_restarts__restart_:
+  k8s_cluster_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - delta(max(k8s_container_restarts__restart_{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}[${__range}])
+          by (k8s_cluster_name)) > 0
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - delta(max(k8s_container_restarts__restart_{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}[${__range}])
+          by (k8s_cluster_name)) > 0
+k8s_container_status_last_terminated_reason:
+  k8s_cluster_name:
+    alerts:
+      b06e63a0-4c8a-4233-8fe6-ebf35fd3487c:
+        - sum(increase(k8s_container_status_last_terminated_reason{reason=~"(Error|OOMKilled|StartError)"}[10m]))
+          by (k8s_deployment_name,k8s_namespace_name,k8s_cluster_name,reason)
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sort_desc(sum((k8s_container_status_last_terminated_reason{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}",reason!~""}
+          > 0 )) by (reason,k8s_pod_name))
+  k8s_deployment_name:
+    alerts:
+      b06e63a0-4c8a-4233-8fe6-ebf35fd3487c:
+        - sum(increase(k8s_container_status_last_terminated_reason{reason=~"(Error|OOMKilled|StartError)"}[10m]))
+          by (k8s_deployment_name,k8s_namespace_name,k8s_cluster_name,reason)
+  k8s_namespace_name:
+    alerts:
+      b06e63a0-4c8a-4233-8fe6-ebf35fd3487c:
+        - sum(increase(k8s_container_status_last_terminated_reason{reason=~"(Error|OOMKilled|StartError)"}[10m]))
+          by (k8s_deployment_name,k8s_namespace_name,k8s_cluster_name,reason)
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sort_desc(sum((k8s_container_status_last_terminated_reason{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}",reason!~""}
+          > 0 )) by (reason,k8s_pod_name))
+  k8s_pod_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sort_desc(sum((k8s_container_status_last_terminated_reason{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}",reason!~""}
+          > 0 )) by (reason,k8s_pod_name))
+  reason:
+    alerts:
+      b06e63a0-4c8a-4233-8fe6-ebf35fd3487c:
+        - sum(increase(k8s_container_status_last_terminated_reason{reason=~"(Error|OOMKilled|StartError)"}[10m]))
+          by (k8s_deployment_name,k8s_namespace_name,k8s_cluster_name,reason)
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sort_desc(sum((k8s_container_status_last_terminated_reason{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}",reason!~""}
+          > 0 )) by (reason,k8s_pod_name))
+k8s_daemonset_ready_nodes__node_:
+  k8s_cluster_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - (sum by (k8s_daemonset_name) (sum_over_time(k8s_daemonset_ready_nodes__node_{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"})))
+  k8s_daemonset_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - (sum by (k8s_daemonset_name) (sum_over_time(k8s_daemonset_ready_nodes__node_{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"})))
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - (sum by (k8s_daemonset_name) (sum_over_time(k8s_daemonset_ready_nodes__node_{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"})))
+k8s_deployment_available__pod_:
+  k8s_cluster_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count ( count by (k8s_deployment_name)(k8s_deployment_available__pod_{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_deployment_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count ( count by (k8s_deployment_name)(k8s_deployment_available__pod_{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count ( count by (k8s_deployment_name)(k8s_deployment_available__pod_{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+k8s_namespace_name:
+  cloud_account_id:
+    alerts:
+      3a3a3616-cca6-49f4-8acb-2dc842dcd57a:
+        - sum by (k8s_cluster_name,cloud_account_id,k8s_daemonset_name)({__name__=~"k8s_daemonset_misscheduled_nodes__node_",k8s_namespace_name=~".+"})
+          > 0
+      6df56de4-ef36-4ccc-b82c-b3da8f8f14f2:
+        - sum by (k8s_cluster_name,cloud_account_id,k8s_daemonset_name)({__name__=~"k8s_daemonset_misscheduled_nodes__node_",k8s_namespace_name="kube-system"})
+          > 0
+  k8s_cluster_name:
+    alerts:
+      3a3a3616-cca6-49f4-8acb-2dc842dcd57a:
+        - sum by (k8s_cluster_name,cloud_account_id,k8s_daemonset_name)({__name__=~"k8s_daemonset_misscheduled_nodes__node_",k8s_namespace_name=~".+"})
+          > 0
+      6df56de4-ef36-4ccc-b82c-b3da8f8f14f2:
+        - sum by (k8s_cluster_name,cloud_account_id,k8s_daemonset_name)({__name__=~"k8s_daemonset_misscheduled_nodes__node_",k8s_namespace_name="kube-system"})
+          > 0
+      8c2a831d-6bf3-4066-9dc9-dc6e481248b5:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 3
+      f7ddec45-9cdc-4fa2-84d4-b9f08aa2fd32:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 2
+  k8s_daemonset_name:
+    alerts:
+      3a3a3616-cca6-49f4-8acb-2dc842dcd57a:
+        - sum by (k8s_cluster_name,cloud_account_id,k8s_daemonset_name)({__name__=~"k8s_daemonset_misscheduled_nodes__node_",k8s_namespace_name=~".+"})
+          > 0
+      6df56de4-ef36-4ccc-b82c-b3da8f8f14f2:
+        - sum by (k8s_cluster_name,cloud_account_id,k8s_daemonset_name)({__name__=~"k8s_daemonset_misscheduled_nodes__node_",k8s_namespace_name="kube-system"})
+          > 0
+  k8s_namespace_name:
+    alerts:
+      8c2a831d-6bf3-4066-9dc9-dc6e481248b5:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 3
+      f7ddec45-9cdc-4fa2-84d4-b9f08aa2fd32:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 2
+  k8s_pod_name:
+    alerts:
+      8c2a831d-6bf3-4066-9dc9-dc6e481248b5:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 3
+      f7ddec45-9cdc-4fa2-84d4-b9f08aa2fd32:
+        - sum(increase({__name__=~"k8s_container_restarts__restart_",k8s_cluster_name=~".+",k8s_namespace_name=~".+",k8s_container_name=~".+"}))
+          by (k8s_cluster_name,k8s_namespace_name,k8s_pod_name) > 2
+k8s_namespace_phase:
+  k8s_cluster_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count ( count by (k8s_namespace_name)(k8s_namespace_phase{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_namespace_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count ( count by (k8s_namespace_name)(k8s_namespace_phase{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count ( count by (k8s_namespace_name)(k8s_namespace_phase{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+k8s_node_allocatable_cpu__cpu_:
+  cloud_account_id:
+    alerts:
+      c0417e63-8c72-4724-b6e2-5202e156e5ef:
+        - sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_cpu_utilization_1{}[1m]))
+          / sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_allocatable_cpu__cpu_{}[1m]))
+          * 100
+  k8s_cluster_name:
+    alerts:
+      c0417e63-8c72-4724-b6e2-5202e156e5ef:
+        - sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_cpu_utilization_1{}[1m]))
+          / sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_allocatable_cpu__cpu_{}[1m]))
+          * 100
+  k8s_node_name:
+    alerts:
+      c0417e63-8c72-4724-b6e2-5202e156e5ef:
+        - sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_cpu_utilization_1{}[1m]))
+          / sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_allocatable_cpu__cpu_{}[1m]))
+          * 100
+k8s_node_allocatable_memory_By:
+  k8s_cluster_name:
+    alerts:
+      d8da10d6-22fc-4042-9a51-d44bd5d390c3:
+        - ((sum(k8s_node_memory_usage_By{k8s_node_name =~ '.*'}) by (k8s_cluster_name,k8s_node_name))
+          / (sum(k8s_node_allocatable_memory_By{k8s_node_name =~ '.*'}) by (k8s_cluster_name,k8s_node_name)))
+  k8s_node_name:
+    alerts:
+      28d603e7-f2d5-44ef-845d-a43c23e0d33a:
+        - ((sum(k8s_node_memory_usage_By{k8s_node_name =~ '.*'}) by (k8s_node_name))
+          / (sum(k8s_node_allocatable_memory_By{}) by (k8s_node_name)))
+      d8da10d6-22fc-4042-9a51-d44bd5d390c3:
+        - ((sum(k8s_node_memory_usage_By{k8s_node_name =~ '.*'}) by (k8s_cluster_name,k8s_node_name))
+          / (sum(k8s_node_allocatable_memory_By{k8s_node_name =~ '.*'}) by (k8s_cluster_name,k8s_node_name)))
+k8s_node_cpu_utilization_1:
+  cloud_account_id:
+    alerts:
+      c0417e63-8c72-4724-b6e2-5202e156e5ef:
+        - sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_cpu_utilization_1{}[1m]))
+          / sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_allocatable_cpu__cpu_{}[1m]))
+          * 100
+  eks_amazonaws_com_compute_type:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sum(count by (k8s_node_name) (k8s_node_cpu_utilization_1{eks_amazonaws_com_compute_type=~"",pod=~"",k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_cluster_name:
+    alerts:
+      c0417e63-8c72-4724-b6e2-5202e156e5ef:
+        - sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_cpu_utilization_1{}[1m]))
+          / sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_allocatable_cpu__cpu_{}[1m]))
+          * 100
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sum by (k8s_cluster_name) (count by(k8s_cluster_name) (k8s_node_cpu_utilization_1{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_node_name:
+    alerts:
+      c0417e63-8c72-4724-b6e2-5202e156e5ef:
+        - sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_cpu_utilization_1{}[1m]))
+          / sum by (k8s_node_name,k8s_cluster_name,cloud_account_id) (avg_over_time(k8s_node_allocatable_cpu__cpu_{}[1m]))
+          * 100
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sum by (k8s_cluster_name) (count by(k8s_cluster_name) (k8s_node_cpu_utilization_1{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  pod:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sum(count by (k8s_node_name) (k8s_node_cpu_utilization_1{eks_amazonaws_com_compute_type=~"",pod=~"",k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+k8s_node_filesystem_capacity_By:
+  k8s_cluster_name:
+    alerts:
+      e0ce639d-cea4-4f59-afee-c3681742daa6:
+        - 100 * avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_usage_By{})
+          / avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_capacity_By{})
+  k8s_namespace_name:
+    alerts:
+      e0ce639d-cea4-4f59-afee-c3681742daa6:
+        - 100 * avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_usage_By{})
+          / avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_capacity_By{})
+  k8s_node_name:
+    alerts:
+      e0ce639d-cea4-4f59-afee-c3681742daa6:
+        - 100 * avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_usage_By{})
+          / avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_capacity_By{})
+k8s_node_filesystem_usage_By:
+  k8s_cluster_name:
+    alerts:
+      e0ce639d-cea4-4f59-afee-c3681742daa6:
+        - 100 * avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_usage_By{})
+          / avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_capacity_By{})
+  k8s_namespace_name:
+    alerts:
+      e0ce639d-cea4-4f59-afee-c3681742daa6:
+        - 100 * avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_usage_By{})
+          / avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_capacity_By{})
+  k8s_node_name:
+    alerts:
+      e0ce639d-cea4-4f59-afee-c3681742daa6:
+        - 100 * avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_usage_By{})
+          / avg by (k8s_cluster_name,k8s_namespace_name,k8s_node_name)(k8s_node_filesystem_capacity_By{})
+k8s_node_memory_usage_By:
+  k8s_cluster_name:
+    alerts:
+      d8da10d6-22fc-4042-9a51-d44bd5d390c3:
+        - ((sum(k8s_node_memory_usage_By{k8s_node_name =~ '.*'}) by (k8s_cluster_name,k8s_node_name))
+          / (sum(k8s_node_allocatable_memory_By{k8s_node_name =~ '.*'}) by (k8s_cluster_name,k8s_node_name)))
+  k8s_node_name:
+    alerts:
+      28d603e7-f2d5-44ef-845d-a43c23e0d33a:
+        - ((sum(k8s_node_memory_usage_By{k8s_node_name =~ '.*'}) by (k8s_node_name))
+          / (sum(k8s_node_allocatable_memory_By{}) by (k8s_node_name)))
+      d8da10d6-22fc-4042-9a51-d44bd5d390c3:
+        - ((sum(k8s_node_memory_usage_By{k8s_node_name =~ '.*'}) by (k8s_cluster_name,k8s_node_name))
+          / (sum(k8s_node_allocatable_memory_By{k8s_node_name =~ '.*'}) by (k8s_cluster_name,k8s_node_name)))
+k8s_node_memory_working_set_By:
+  k8s_cluster_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sum(avg(k8s_node_memory_working_set_By{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}[${__range}])
+          * count by (k8s_node_name)(count(k8s_node_memory_working_set_By{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}[${__range}])))
+          /1000000000
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sum(avg(k8s_node_memory_working_set_By{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}[${__range}])
+          * count by (k8s_node_name)(count(k8s_node_memory_working_set_By{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}[${__range}])))
+          /1000000000
+k8s_pod_memory_usage_By:
+  k8s_cluster_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count(count by (k8s_pod_name) (k8s_pod_memory_usage_By{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count(count by (k8s_pod_name) (k8s_pod_memory_usage_By{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+  k8s_pod_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count(count by (k8s_pod_name) (k8s_pod_memory_usage_By{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}))
+k8s_pod_phase:
+  k8s_pod_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - '100 * (count (count by (k8s_pod_name)(k8s_pod_phase_1{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}==2)))
+          / (count (count by (k8s_pod_name)(k8s_pod_phase_1{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}==2
+          or k8s_pod_phase{}==1))) '
+k8s_pod_phase_1:
+  Status:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sum by (Status,k8s_cluster_name,k8s_pod_name) (label_replace((count(k8s_pod_phase_1{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}[${__range}]
+          == 1) by (Status,k8s_cluster_name,k8s_pod_name)),"Status","Pending","$1","(.*)"))
+          > 0
+  k8s_cluster_name:
+    alerts:
+      199f203c-94be-44d3-96db-febc8718101e:
+        - count(k8s_pod_phase_1{}==4) by (k8s_cluster_name, k8s_namespace_name, k8s_pod_name)
+      adfbab76-5f47-4f1d-b862-fe0f8dcf7a61:
+        - avg(100 * sum(k8s_pod_phase_1{}==2) by (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name)
+          / (sum(k8s_pod_phase_1{}==2) by (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name)
+          + sum(k8s_pod_phase_1{}==1) by (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name))[1m])by
+          (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name)
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sort_desc(sum by (k8s_pod_name,k8s_cluster_name) (sum_over_time(k8s_pod_phase_1{k8s_cluster_name!="",k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}==4)))
+          > 0
+  k8s_cluster_name_1:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sum by (k8s_cluster_name)(count(k8s_pod_phase_1{k8s_cluster_name_1=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}[${__range}]
+          == 4) by (k8s_cluster_name)) OR on() vector(0)
+  k8s_deployment_name:
+    alerts:
+      adfbab76-5f47-4f1d-b862-fe0f8dcf7a61:
+        - avg(100 * sum(k8s_pod_phase_1{}==2) by (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name)
+          / (sum(k8s_pod_phase_1{}==2) by (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name)
+          + sum(k8s_pod_phase_1{}==1) by (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name))[1m])by
+          (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name)
+  k8s_namespace_name:
+    alerts:
+      199f203c-94be-44d3-96db-febc8718101e:
+        - count(k8s_pod_phase_1{}==4) by (k8s_cluster_name, k8s_namespace_name, k8s_pod_name)
+      adfbab76-5f47-4f1d-b862-fe0f8dcf7a61:
+        - avg(100 * sum(k8s_pod_phase_1{}==2) by (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name)
+          / (sum(k8s_pod_phase_1{}==2) by (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name)
+          + sum(k8s_pod_phase_1{}==1) by (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name))[1m])by
+          (k8s_deployment_name,k8s_cluster_name,k8s_namespace_name)
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sum by (Status,k8s_pod_name,k8s_cluster_name,k8s_namespace_name)(count(k8s_pod_phase_1{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}[${__range}]
+          == 4) by (Status,k8s_pod_name,k8s_cluster_name,k8s_namespace_name))
+  k8s_node_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sort_desc(sum by (k8s_pod_name,k8s_cluster_name) (sum_over_time(k8s_pod_phase_1{k8s_cluster_name!="",k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}==4)))
+          > 0
+  k8s_pod_name:
+    alerts:
+      199f203c-94be-44d3-96db-febc8718101e:
+        - count(k8s_pod_phase_1{}==4) by (k8s_cluster_name, k8s_namespace_name, k8s_pod_name)
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - sort_desc(sum by (k8s_pod_name,k8s_cluster_name) (sum_over_time(k8s_pod_phase_1{k8s_cluster_name!="",k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}==4)))
+          > 0
+k8s_pod_status_reason:
+  k8s_cluster_name:
+    alerts:
+      699b3dac-f05c-45d3-8537-1db06751b5d5:
+        - min by (k8s_cluster_name,k8s_pod_name) (k8s_pod_status_reason{k8s_namespace_name!~"kube-system"}
+          > 3 )
+  k8s_namespace_name:
+    alerts:
+      699b3dac-f05c-45d3-8537-1db06751b5d5:
+        - min by (k8s_cluster_name,k8s_pod_name) (k8s_pod_status_reason{k8s_namespace_name!~"kube-system"}
+          > 3 )
+  k8s_pod_name:
+    alerts:
+      699b3dac-f05c-45d3-8537-1db06751b5d5:
+        - min by (k8s_cluster_name,k8s_pod_name) (k8s_pod_status_reason{k8s_namespace_name!~"kube-system"}
+          > 3 )
+kube_daemonset_created:
+  daemonset:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count(kube_daemonset_created{}) by (daemonset))
+kube_deployment_created:
+  deployment:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count(kube_deployment_created{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          namespace=~"{{namespace}}"}) by (deployment))
+  k8s_cluster_name:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count(kube_deployment_created{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          namespace=~"{{namespace}}"}) by (deployment))
+  namespace:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count(kube_deployment_created{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          namespace=~"{{namespace}}"}) by (deployment))
+kube_namespace_created:
+  k8s_cluster_name:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count by (k8s_cluster_name, namespace) (kube_namespace_created{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          namespace=~"{{namespace}}"})) by (k8s_cluster_name)
+  namespace:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count by (k8s_cluster_name, namespace) (kube_namespace_created{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          namespace=~"{{namespace}}"})) by (k8s_cluster_name)
+kube_node_info:
+  container_runtime_version:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - 'count(kube_node_info{k8s_cluster_name=~"{{k8s_cluster_name}}", node=~"{{k8s_node_name}}",
+          namespace=~"{{namespace}}"}) by (k8s_cluster_name, node, kubelet_version,
+          container_runtime_version)
+
+          '
+  k8s_cluster_name:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - 'count(kube_node_info{k8s_cluster_name=~"{{k8s_cluster_name}}", node=~"{{k8s_node_name}}",
+          namespace=~"{{namespace}}"}) by (k8s_cluster_name, node, kubelet_version,
+          container_runtime_version)
+
+          '
+  kubelet_version:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - 'count(kube_node_info{k8s_cluster_name=~"{{k8s_cluster_name}}", node=~"{{k8s_node_name}}",
+          namespace=~"{{namespace}}"}) by (k8s_cluster_name, node, kubelet_version,
+          container_runtime_version)
+
+          '
+  namespace:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - 'count(kube_node_info{k8s_cluster_name=~"{{k8s_cluster_name}}", node=~"{{k8s_node_name}}",
+          namespace=~"{{namespace}}"}) by (k8s_cluster_name, node, kubelet_version,
+          container_runtime_version)
+
+          '
+  node:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - 'count(kube_node_info{k8s_cluster_name=~"{{k8s_cluster_name}}", node=~"{{k8s_node_name}}",
+          namespace=~"{{namespace}}"}) by (k8s_cluster_name, node, kubelet_version,
+          container_runtime_version)
+
+          '
+kube_pod_container_info:
+  container_id:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count(kube_pod_container_info{}) by (container_id))
+  k8s_cluster_name:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count by (namespace, pod) (kube_pod_container_info{k8s_cluster_name=~"{{k8s_cluster_name}}"}))
+          by (namespace)
+  namespace:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count by (namespace, pod) (kube_pod_container_info{k8s_cluster_name=~"{{k8s_cluster_name}}"}))
+          by (namespace)
+  pod:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - count(count by (namespace, pod) (kube_pod_container_info{k8s_cluster_name=~"{{k8s_cluster_name}}"}))
+          by (namespace)
+kube_pod_container_status_restarts_total:
+  container:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - sum(increase(kube_pod_container_status_restarts_total{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          namespace=~"{{namespace}}"}[5m])) by (container)
+  k8s_cluster_name:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - sum(increase(kube_pod_container_status_restarts_total{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          namespace=~"{{namespace}}"}[5m])) by (container)
+  namespace:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - sum(increase(kube_pod_container_status_restarts_total{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          namespace=~"{{namespace}}"}[5m])) by (container)
+kube_pod_container_status_terminated_reason:
+  k8s_cluster_name:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - sort_desc(sum((kube_pod_container_status_terminated_reason{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          reason!~""} > 0 )) by (reason, pod))
+  pod:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - sort_desc(sum((kube_pod_container_status_terminated_reason{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          reason!~""} > 0 )) by (reason, pod))
+  reason:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - sort_desc(sum((kube_pod_container_status_terminated_reason{k8s_cluster_name=~"{{k8s_cluster_name}}",
+          reason!~""} > 0 )) by (reason, pod))
+kube_pod_status_phase:
+  k8s_cluster_name:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - sum(sum_over_time(kube_pod_status_phase{phase="Unknown", k8s_cluster_name=~"{{k8s_cluster_name}}",namespace=~"{{namespace}}"}[1m]))
+  namespace:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - sum(sum_over_time(kube_pod_status_phase{phase="Unknown", k8s_cluster_name=~"{{k8s_cluster_name}}",namespace=~"{{namespace}}"}[1m]))
+  phase:
+    dashboards:
+      cqfOPaj0KXtvb3oUQtMa8:
+        - sum(sum_over_time(kube_pod_status_phase{phase="Unknown", k8s_cluster_name=~"{{k8s_cluster_name}}",namespace=~"{{namespace}}"}[1m]))
+or:
+  k8s_pod_name:
+    dashboards:
+      sTdBFCGXxLo755E7QzeEg:
+        - count(count by (k8s_pod_name) (k8s_pod_phase_1{k8s_cluster_name=~"{{k8s_cluster_name}}",k8s_node_name=~"{{k8s_node_name}}"}==4))
+          or vector(0)
+otelcol_exporter_send_failed_log_records_total:
+  cloud_account_id:
+    alerts:
+      bae38afa-1bc9-4d97-ad86-6e29ded8eb4f:
+        - sum(increase(otelcol_exporter_send_failed_log_records_total{}[5m])) by (exporter,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_agent_type:
+    alerts:
+      bae38afa-1bc9-4d97-ad86-6e29ded8eb4f:
+        - sum(increase(otelcol_exporter_send_failed_log_records_total{}[5m])) by (exporter,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_otel_integration_name:
+    alerts:
+      bae38afa-1bc9-4d97-ad86-6e29ded8eb4f:
+        - sum(increase(otelcol_exporter_send_failed_log_records_total{}[5m])) by (exporter,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  exporter:
+    alerts:
+      bae38afa-1bc9-4d97-ad86-6e29ded8eb4f:
+        - sum(increase(otelcol_exporter_send_failed_log_records_total{}[5m])) by (exporter,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  k8s_pod_name:
+    alerts:
+      bae38afa-1bc9-4d97-ad86-6e29ded8eb4f:
+        - sum(increase(otelcol_exporter_send_failed_log_records_total{}[5m])) by (exporter,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+otelcol_exporter_send_failed_metric_points_total:
+  cloud_account_id:
+    alerts:
+      8e29bb90-910e-41ed-abde-c10b359d2878:
+        - sum(increase(otelcol_exporter_send_failed_metric_points_total{}[5m])) by (exporter,
+          k8s_pod_name,cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_agent_type:
+    alerts:
+      8e29bb90-910e-41ed-abde-c10b359d2878:
+        - sum(increase(otelcol_exporter_send_failed_metric_points_total{}[5m])) by (exporter,
+          k8s_pod_name,cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_otel_integration_name:
+    alerts:
+      8e29bb90-910e-41ed-abde-c10b359d2878:
+        - sum(increase(otelcol_exporter_send_failed_metric_points_total{}[5m])) by (exporter,
+          k8s_pod_name,cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  exporter:
+    alerts:
+      8e29bb90-910e-41ed-abde-c10b359d2878:
+        - sum(increase(otelcol_exporter_send_failed_metric_points_total{}[5m])) by (exporter,
+          k8s_pod_name,cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  k8s_pod_name:
+    alerts:
+      8e29bb90-910e-41ed-abde-c10b359d2878:
+        - sum(increase(otelcol_exporter_send_failed_metric_points_total{}[5m])) by (exporter,
+          k8s_pod_name,cloud_account_id, cx_agent_type, cx_otel_integration_name)
+otelcol_exporter_send_failed_spans_total:
+  cloud_account_id:
+    alerts:
+      5ef8b08a-44fe-42b5-8d17-9a1e7edda8a4:
+        - sum(rate(otelcol_exporter_send_failed_spans_total{}[5m])) by (exporter, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_agent_type:
+    alerts:
+      5ef8b08a-44fe-42b5-8d17-9a1e7edda8a4:
+        - sum(rate(otelcol_exporter_send_failed_spans_total{}[5m])) by (exporter, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_otel_integration_name:
+    alerts:
+      5ef8b08a-44fe-42b5-8d17-9a1e7edda8a4:
+        - sum(rate(otelcol_exporter_send_failed_spans_total{}[5m])) by (exporter, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  exporter:
+    alerts:
+      5ef8b08a-44fe-42b5-8d17-9a1e7edda8a4:
+        - sum(rate(otelcol_exporter_send_failed_spans_total{}[5m])) by (exporter, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  k8s_pod_name:
+    alerts:
+      5ef8b08a-44fe-42b5-8d17-9a1e7edda8a4:
+        - sum(rate(otelcol_exporter_send_failed_spans_total{}[5m])) by (exporter, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+otelcol_receiver_refused_log_records_total:
+  cloud_account_id:
+    alerts:
+      46e5937d-f011-4a33-83c9-ee89a67595ab:
+        - sum(rate(otelcol_receiver_refused_log_records_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_agent_type:
+    alerts:
+      46e5937d-f011-4a33-83c9-ee89a67595ab:
+        - sum(rate(otelcol_receiver_refused_log_records_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_otel_integration_name:
+    alerts:
+      46e5937d-f011-4a33-83c9-ee89a67595ab:
+        - sum(rate(otelcol_receiver_refused_log_records_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  k8s_pod_name:
+    alerts:
+      46e5937d-f011-4a33-83c9-ee89a67595ab:
+        - sum(rate(otelcol_receiver_refused_log_records_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  receiver:
+    alerts:
+      46e5937d-f011-4a33-83c9-ee89a67595ab:
+        - sum(rate(otelcol_receiver_refused_log_records_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+otelcol_receiver_refused_metric_points_total:
+  cloud_account_id:
+    alerts:
+      b38302dc-8392-43a6-9af2-c90cde96ed0c:
+        - sum(increase(otelcol_receiver_refused_metric_points_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_agent_type:
+    alerts:
+      b38302dc-8392-43a6-9af2-c90cde96ed0c:
+        - sum(increase(otelcol_receiver_refused_metric_points_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_otel_integration_name:
+    alerts:
+      b38302dc-8392-43a6-9af2-c90cde96ed0c:
+        - sum(increase(otelcol_receiver_refused_metric_points_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  k8s_pod_name:
+    alerts:
+      b38302dc-8392-43a6-9af2-c90cde96ed0c:
+        - sum(increase(otelcol_receiver_refused_metric_points_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  receiver:
+    alerts:
+      b38302dc-8392-43a6-9af2-c90cde96ed0c:
+        - sum(increase(otelcol_receiver_refused_metric_points_total{}[5m])) by (receiver,
+          k8s_pod_name, cloud_account_id, cx_agent_type, cx_otel_integration_name)
+otelcol_receiver_refused_spans_total:
+  cloud_account_id:
+    alerts:
+      28802606-703f-44f6-94e5-8731806ca4e5:
+        - sum(increase(otelcol_receiver_refused_spans_total{}[5m])) by (receiver, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_agent_type:
+    alerts:
+      28802606-703f-44f6-94e5-8731806ca4e5:
+        - sum(increase(otelcol_receiver_refused_spans_total{}[5m])) by (receiver, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  cx_otel_integration_name:
+    alerts:
+      28802606-703f-44f6-94e5-8731806ca4e5:
+        - sum(increase(otelcol_receiver_refused_spans_total{}[5m])) by (receiver, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  k8s_pod_name:
+    alerts:
+      28802606-703f-44f6-94e5-8731806ca4e5:
+        - sum(increase(otelcol_receiver_refused_spans_total{}[5m])) by (receiver, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+  receiver:
+    alerts:
+      28802606-703f-44f6-94e5-8731806ca4e5:
+        - sum(increase(otelcol_receiver_refused_spans_total{}[5m])) by (receiver, k8s_pod_name,
+          cloud_account_id, cx_agent_type, cx_otel_integration_name)
+system_cpu_time_total:
+  cloud_account_id:
+    alerts:
+      10d1f9e9-b499-47a2-bfa2-b25f12bf6327:
+        - (1 - max(irate(system_cpu_time_total{state="idle"}[5m])) by (k8s_node_name,k8s_cluster_name,cloud_account_id))
+          * 100
+  k8s_cluster_name:
+    alerts:
+      10d1f9e9-b499-47a2-bfa2-b25f12bf6327:
+        - (1 - max(irate(system_cpu_time_total{state="idle"}[5m])) by (k8s_node_name,k8s_cluster_name,cloud_account_id))
+          * 100
+  k8s_node_name:
+    alerts:
+      10d1f9e9-b499-47a2-bfa2-b25f12bf6327:
+        - (1 - max(irate(system_cpu_time_total{state="idle"}[5m])) by (k8s_node_name,k8s_cluster_name,cloud_account_id))
+          * 100
+  state:
+    alerts:
+      10d1f9e9-b499-47a2-bfa2-b25f12bf6327:
+        - (1 - max(irate(system_cpu_time_total{state="idle"}[5m])) by (k8s_node_name,k8s_cluster_name,cloud_account_id))
+          * 100
+system_filesystem_usage_By:
+  _:
+    alerts:
+      b0f8b1a6-b623-4bc7-b7f6-89d2ed706beb:
+        - avg_over_time(system_filesystem_usage_By{cx_subsystem_name = 'swamp', state
+          = 'used', mountpoint = '/home'})
+  device:
+    dashboards:
+      ZerJr6dDM1tJ4JMIgoY1V:
+        - sum(system_filesystem_usage_By{state="used",host_name=~"{{host_name}}"}) by
+          (host_name, mountpoint, device) / 1024 / 1024
+  host_name:
+    dashboards:
+      ZerJr6dDM1tJ4JMIgoY1V:
+        - sum(system_filesystem_usage_By{state="used",host_name=~"{{host_name}}"}) by
+          (host_name, mountpoint, device) / 1024 / 1024
+  mountpoint:
+    dashboards:
+      ZerJr6dDM1tJ4JMIgoY1V:
+        - sum(system_filesystem_usage_By{state="used",host_name=~"{{host_name}}"}) by
+          (host_name, mountpoint, device) / 1024 / 1024
+  state:
+    dashboards:
+      ZerJr6dDM1tJ4JMIgoY1V:
+        - sum(system_filesystem_usage_By{state="used",host_name=~"{{host_name}}"}) by
+          (host_name, mountpoint, device) / 1024 / 1024
+system_memory_utilization_1:
+  host_name:
+    dashboards:
+      ZerJr6dDM1tJ4JMIgoY1V:
+        - sum(system_memory_utilization_1{state="used",host_name=~"{{host_name}}"})
+          * 100
+  state:
+    dashboards:
+      ZerJr6dDM1tJ4JMIgoY1V:
+        - sum(system_memory_utilization_1{state="used",host_name=~"{{host_name}}"})
+          * 100
+t: est

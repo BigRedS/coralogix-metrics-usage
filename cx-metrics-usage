@@ -1,0 +1,233 @@
+#! /usr/bin/env python3
+
+import os
+import sys
+import json
+import logging
+import requests
+import yaml
+
+import re
+
+from dotenv import load_dotenv
+
+logging.basicConfig(encoding='utf-8', level=logging.INFO)
+if 'LOGLEVEL' in os.environ:
+  logging.getLogger().setLevel(os.environ['LOGLEVEL'])
+
+if os.path.exists('.env'):
+  logging.info("Reading dotenv file at ./.env")
+  load_dotenv('.env')
+
+if "CX_API_KEY" in os.environ:
+  api_key = os.environ['CX_API_KEY']
+  logging.debug(f"Reading CX_API_KEY from environment; got {api_key}")
+
+if "CX_REGION" in os.environ:
+  region = os.environ['CX_REGION']
+  logging.debug(f"Reading CX_REGION from environment; got {region}")
+
+http_endpoints = {
+  "AP1": "https://api.ap1.coralogix.in",
+  "AP2": "https://api.ap2.coralogixsg.com",
+  "AP3": "https://api.ap3.coralogix.com",
+  "EU1": "https://api.coralogix.com",
+  "EU2": "https://api.eu2.coralogix.com",
+  "US1": "https://api.coralogix.us",
+  "US2": "https://api.cx498.coralogix.com",
+}
+http_endpoint = http_endpoints[region]
+
+def main():
+  all_metrics = {
+    "t": "est"
+  }
+  alerts_defs = get_alerts_definitions();
+  if 'alertDefs' in alerts_defs:
+    for alertdef in alerts_defs['alertDefs']:
+      all_metrics = get_metrics_from_alert(all_metrics, alertdef['id'])
+  catalog = get_dashboard_catalog();
+  for dashboard_id in catalog:
+    all_metrics = get_metrics_from_board(all_metrics, dashboard_id)
+  print(yaml.dump(all_metrics, indent=2))
+
+# Alerts
+def get_alert(id):
+  alert = api_request(f"/mgmt/openapi/v3/alert-defs/{id}")
+  return alert
+
+def get_alerts_definitions():
+  definitions = api_request('/mgmt/openapi/v3/alert-defs?')
+  return(definitions)
+
+# Dashboards
+def get_dashboard(id):
+  board = api_request(f"/mgmt/openapi/v1/dashboards/dashboards/{id}")
+  return board
+
+def get_dashboard_catalog():
+  catalog = api_request('/mgmt/openapi/v1/dashboards/catalog')
+
+  boards = {}
+  for item in catalog["items"]:
+    boards[ item['id'] ] = item['name']
+  return boards
+
+def get_metrics_from_alert(all_metrics, alert_id):
+  alert = get_alert(alert_id)
+  if 'metricThreshold' in alert['alertDef']['alertDefProperties']:
+    query = alert['alertDef']['alertDefProperties']['metricThreshold']['metricFilter']['promql']
+    metrics = extract_metrics_and_labels(query)
+    for r in metrics:
+      metric_name = r['metric']
+      if not metric_name in all_metrics:
+        all_metrics[metric_name] = {}
+      if not r['labels']:
+        if not '_' in all_metrics[metric_name]:
+          all_metrics[metric_name]['_'] = {}
+        if not 'dashboads' in all_metrics[metric_name]['_']:
+          all_metrics[metric_name]['_']['alerts'] = {}
+        if not alert_id in all_metrics[metric_name]['_']['alerts']:
+          all_metrics[metric_name]['_']['alerts'][alert_id] = []
+        all_metrics[metric_name]['_']['alerts'][alert_id].append(query)
+      for label_name in r['labels']:
+        if not label_name in all_metrics[metric_name]:
+          all_metrics[metric_name][label_name] = {}
+        if not 'alerts' in all_metrics[metric_name][label_name]:
+          all_metrics[metric_name][label_name]['alerts'] = {}
+        if not 'alert_id' in all_metrics[metric_name][label_name]['alerts']:
+          all_metrics[metric_name][label_name]['alerts'][alert_id] = []
+        all_metrics[metric_name][label_name]['alerts'][alert_id].append(query)
+  return(all_metrics)
+
+
+def get_metrics_from_board(all_metrics, dashboard_id):
+  dashboard = get_dashboard(dashboard_id)
+  for section in dashboard['dashboard']['layout']['sections']:
+    if 'rows' in section:
+      for row in section['rows']:
+        if 'widgets' in row:
+          for widget in row['widgets']:
+            for kind in widget['definition']:
+              # Widget types that can have multiple queries (lines, for instance) have a list
+              # of query definitions under the key 'queryDefinitions', but those types that can
+              # only have one (pie charts) just have a single definition under the key 'query'.
+              # Here we normalise those
+              query_definitions = []
+              if 'queryDefinitions' in widget['definition'][kind]:
+                for query in widget['definition'][kind]['queryDefinitions']:
+                  query_definitions.append( query )
+
+              if 'query' in widget['definition'][kind]:
+                query_definitions.append( widget['definition'][kind]['query'] )
+
+                for queryDef in query_definitions:
+                  q = {}
+                  for lang in queryDef:
+                    if lang =='metrics':
+                      query = queryDef['metrics']['promqlQuery']['value']
+                      metrics = extract_metrics_and_labels(query)
+                      for r in metrics:
+                          metric_name = r['metric']
+                          if not metric_name in all_metrics:
+                              all_metrics[metric_name] = {}
+                          if not r['labels']:
+                            if not '_' in all_metrics[metric_name]:
+                              all_metrics[metric_name]['_'] = {}
+                            if not 'dashboads' in all_metrics[metric_name]['_']:
+                              all_metrics[metric_name]['_']['dashboards'] = {}
+                            if not dashboard_id in all_metrics[metric_name]['_']['dashboards']:
+                              all_metrics[metric_name]['_']['dashboards'][dashboard_id] = []
+                            all_metrics[metric_name]['_']['dashboards'][dashboard_id].append(query)
+                          for label_name in r['labels']:
+                              if not label_name in all_metrics[metric_name]:
+                                all_metrics[metric_name][label_name] = {}
+                              if not 'dashboards' in all_metrics[metric_name][label_name]:
+                                all_metrics[metric_name][label_name]['dashboards'] = {}
+                              if not 'dashboard_id' in all_metrics[metric_name][label_name]['dashboards']:
+                               all_metrics[metric_name][label_name]['dashboards'][dashboard_id] = []
+                              all_metrics[metric_name][label_name]['dashboards'][dashboard_id].append(query)
+
+  return(all_metrics)
+
+
+
+
+def extract_metrics_and_labels(promql: str):
+    """
+    Extract metric names and their labels from a PromQL query using regex.
+    - Keeps duplicates
+    - Ignores function names
+    - Aggregator labels (by(...) / without(...)) are added as labels, not metrics
+    """
+
+    # Strip comments
+    promql = re.sub(r'#.*', '', promql)
+
+    # Strip string literals
+    promql = re.sub(r'"(?:\\.|[^"\\])*"', '""', promql)
+
+    # Capture aggregator labels and remove from query
+    agg_labels = []
+    def agg_repl(m):
+        inside = m.group(1)
+        for lbl in re.split(r'\s*,\s*', inside.strip()):
+            if lbl:
+                agg_labels.append(lbl)
+        return ''  # remove this part from query
+
+    promql = re.sub(r'\b(?:by|without)\s*\(([^)]*)\)', agg_repl, promql)
+
+    # Metric selector regex
+    selector_re = re.compile(
+        r'(?<![a-zA-Z0-9_:])'            # not preceded by ident char
+        r'([a-zA-Z_:][a-zA-Z0-9_:]*)'    # metric name
+        r'(?!\s*\()'                     # not followed by "(" → not a function
+        r'(?:\[[^\]]*\])?'               # optional [range]
+        r'(?:\{([^}]*)\})?'              # optional {labels}
+        r'(?![a-zA-Z0-9_:])'             # not followed by ident char
+    )
+
+    label_re = re.compile(
+        r'([a-zA-Z_][a-zA-Z0-9_]*)'      # label name
+        r'\s*(?:=~|!~|=|!=)\s*'          # operator
+        r'"([^"]*)"'                     # value
+    )
+
+    reserved = {
+        "by", "on", "ignoring", "group_left", "group_right",
+        "offset", "bool", "without",
+        "__range", "OR"
+    }
+
+    results = []
+    for metric, label_str in selector_re.findall(promql):
+        if metric in reserved:
+            continue
+
+        labels = {}
+        if label_str:
+            for m in label_re.finditer(label_str):
+                k, v = m.groups()
+                labels[k] = v
+
+        # append aggregator labels with empty string values
+        for lbl in agg_labels:
+            if lbl not in labels:
+                labels[lbl] = ""
+
+        results.append({"metric": metric, "labels": labels})
+
+    return results
+
+def api_request(path, data = ()):
+  url = http_endpoint + path
+  logging.debug('Key: ' + api_key)
+  logging.debug(f"Hitting {url}")
+  logging.debug(f" curl -H 'Authorization: Bearer {api_key}' {url}")
+  headers = {"Authorization": "Bearer " + api_key}
+  response = requests.request("GET", url, headers=headers)
+  return json.loads(response.text)
+
+
+main()
