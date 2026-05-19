@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+import "google/type/date.proto";
+
+import "com/coralogix/metrics/priority.proto";
+
+package com.coralogix.metrics.common;
+
+option go_package = "github.com/avi/coralogix-metrics-usage/internal/gen/metriccommon;metriccommon";
+
+// Shared base stats for all daily usages
+message CommonDailyUsageFields {
+  google.type.Date date = 1;
+
+  uint64 daily_cardinality = 2;
+
+  uint64 daily_bytes_volume = 3;
+
+  float daily_unit_usage = 4;
+}
+
+message CommonRequestFields {
+  google.type.Date start_date = 1;
+
+  google.type.Date end_date = 2;
+
+  uint32 start_offset = 3;
+
+  uint32 length = 4;
+
+  OrderBy order_by = 5;
+
+  Ordering ordering = 6;
+}
+
+enum OrderBy {
+  BYTES_VOLUME = 0;
+
+  CARDINALITY = 1;
+
+  SAMPLE_COUNT = 2;
+}
+
+enum Ordering {
+  DESCENDING = 0;
+
+  ASCENDING = 1;
+}
+
+message OutputSetStats {
+  uint32 matched_count = 1;
+
+  uint32 dataset_last_updated_epoch_seconds = 2;
+}
+
+message IngestionTimeStats {
+  optional uint32 first_ingested_epoch_seconds = 1;
+
+  uint32 last_ingested_epoch_seconds = 2;
+}
+
+enum PillarType {
+  PILLAR_SOURCE = 0;
+
+  PILLAR_PRIORITY = 1;
+
+  PILLAR_METRIC_NAME = 2;
+
+  PILLAR_SERVICE_NAME = 3;
+}
+
+message PillarValue {
+  oneof value {
+    // Corresponding to `PillarType.PILLAR_SOURCE`.
+    // Whether the metric entity is coming from Recording Rules, APM, or any other CX source indicator.
+    string source = 1;
+
+    // Corresponding to `PillarType.PILLAR_PRIORITY`.
+    com.coralogix.metrics.priority.Priority priority = 2;
+
+    // Corresponding to `PillarType.PILLAR_METRIC_NAME`.
+    string metric_name = 3;
+
+    // Corresponding to `PillarType.PILLAR_SERVICE_NAME`.
+    // A dimension that is meant for grouping metrics based on the value of
+    // their `service_name` label.
+    string service_name = 4;
+  }
+}
+
+message PriorityList {
+  repeated com.coralogix.metrics.priority.Priority priorities = 1;
+}

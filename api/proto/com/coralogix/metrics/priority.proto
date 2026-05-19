@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package com.coralogix.metrics.priority;
+
+option go_package = "github.com/avi/coralogix-metrics-usage/internal/gen/metricpriority;metricpriority";
+
+enum Priority {
+  HIGH = 0;
+
+  MEDIUM = 1;
+
+  LOW = 2;
+
+  BLOCKED = 3;
+}

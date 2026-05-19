@@ -1,0 +1,272 @@
+syntax = "proto3";
+
+import "google/type/date.proto";
+
+import "com/coralogix/metrics/common.proto";
+
+package com.coralogix.metrics.metric_usages;
+
+option go_package = "github.com/avi/coralogix-metrics-usage/internal/gen/metricusages;metricusages";
+
+service UsageService {
+  rpc GetMetricUsages ( GetMetricUsagesRequest ) returns ( GetMetricUsagesResponse );
+
+  rpc GetSingleMetricUsage ( GetSingleMetricUsageRequest ) returns ( GetSingleMetricUsageResponse );
+
+  rpc GetVariationUsagesByMetric ( GetVariationUsagesByMetricRequest ) returns ( GetVariationUsagesByMetricResponse );
+
+  rpc GetLabelUsages ( GetLabelUsagesRequest ) returns ( GetLabelUsagesResponse );
+
+  rpc GetSingleLabelUsage ( GetSingleLabelUsageRequest ) returns ( GetSingleLabelUsageResponse );
+
+  rpc GetLabelUsagesByMetric ( GetLabelUsagesByMetricRequest ) returns ( GetLabelUsagesByMetricResponse );
+
+  // Returns metric usages intersected with a specified label
+  rpc GetMetricUsagesByLabel ( GetMetricUsagesByLabelRequest ) returns ( GetMetricUsagesByLabelResponse );
+
+  rpc GetTotalMetricUsages ( GetTotalMetricUsagesRequest ) returns ( GetTotalMetricUsagesResponse );
+}
+
+message GetMetricUsagesRequest {
+  com.coralogix.metrics.common.CommonRequestFields common = 1;
+
+  optional string metric_name_filter = 2;
+}
+
+message GetSingleMetricUsageRequest {
+  google.type.Date date = 1;
+
+  string metric_name = 2;
+}
+
+message GetVariationUsagesByMetricRequest {
+  com.coralogix.metrics.common.CommonRequestFields common = 1;
+
+  string metric_name = 2;
+
+  // an optional list of label names where each needs to match a part of at least one of the labels in the variation
+  repeated string label_names_filter = 3;
+}
+
+message GetLabelUsagesRequest {
+  com.coralogix.metrics.common.CommonRequestFields common = 1;
+
+  optional string label_name_filter = 2;
+}
+
+message GetSingleLabelUsageRequest {
+  google.type.Date date = 1;
+
+  string label_name = 2;
+}
+
+message GetLabelUsagesByMetricRequest {
+  com.coralogix.metrics.common.CommonRequestFields common = 1;
+
+  string metric_name = 2;
+
+  optional string label_name_filter = 3;
+}
+
+message GetMetricUsagesByLabelRequest {
+  com.coralogix.metrics.common.CommonRequestFields common = 1;
+
+  string label_name = 2;
+
+  optional string metric_name_filter = 3;
+}
+
+message GetTotalMetricUsagesRequest {
+  google.type.Date start_date = 1;
+
+  google.type.Date end_date = 2;
+}
+
+message GetMetricUsagesResponse {
+  repeated MetricUsageDay daily_usages = 1;
+}
+
+message GetSingleMetricUsageResponse {
+  uint64 cardinality = 1;
+
+  uint64 bytes_volume = 2;
+
+  uint64 sample_count = 7;
+
+  float unit_usage = 3;
+
+  uint32 dimensions_count = 4;
+
+  uint32 variations_count = 5;
+
+  com.coralogix.metrics.common.IngestionTimeStats ingestion_time_stats = 6;
+}
+
+message GetVariationUsagesByMetricResponse {
+  repeated VariationUsageDay daily_usages = 1;
+}
+
+message GetLabelUsagesResponse {
+  repeated LabelUsageDay daily_usages = 1;
+}
+
+message GetSingleLabelUsageResponse {
+  uint64 cardinality = 1;
+
+  uint64 bytes_volume = 2;
+
+  float unit_usage = 3;
+
+  uint32 metric_count = 4;
+
+  uint32 variation_count = 5;
+
+  com.coralogix.metrics.common.IngestionTimeStats ingestion_time_stats = 6;
+}
+
+message GetLabelUsagesByMetricResponse {
+  repeated LabelUsageByMetricDay daily_usages = 1;
+}
+
+message GetMetricUsagesByLabelResponse {
+  repeated MetricUsageByLabelDay daily_usages = 1;
+}
+
+message GetTotalMetricUsagesResponse {
+  repeated TotalMetricUsageDay daily_usages = 1;
+}
+
+message TotalMetricUsageDay {
+  google.type.Date date = 1;
+
+  TotalMetricUsageDayUsageInfo usage = 2;
+}
+
+message TotalMetricUsageDayUsageInfo {
+  uint64 sample_count = 1;
+
+  uint64 bytes_volume = 2;
+
+  float unit_usage = 3;
+
+  uint64 cardinality = 4;
+}
+
+message MetricUsageDay {
+  com.coralogix.metrics.common.CommonDailyUsageFields total_daily_usage = 1;
+
+  uint64 total_sample_count = 4;
+
+  com.coralogix.metrics.common.OutputSetStats output_set_stats = 2;
+
+  repeated MetricUsage metric_usages = 3;
+}
+
+message VariationUsageDay {
+  com.coralogix.metrics.common.CommonDailyUsageFields metric_daily_usage = 1;
+
+  uint64 total_sample_count = 4;
+
+  com.coralogix.metrics.common.OutputSetStats output_set_stats = 2;
+
+  repeated VariationUsage variation_usages = 3;
+}
+
+message LabelUsageDay {
+  com.coralogix.metrics.common.CommonDailyUsageFields total_daily_usage = 1;
+
+  com.coralogix.metrics.common.OutputSetStats output_set_stats = 2;
+
+  repeated LabelUsage label_usages = 3;
+}
+
+message LabelUsageByMetricDay {
+  com.coralogix.metrics.common.CommonDailyUsageFields metric_daily_usage = 1;
+
+  com.coralogix.metrics.common.OutputSetStats output_set_stats = 2;
+
+  repeated LabelUsageByMetric label_usages = 3;
+}
+
+message MetricUsageByLabelDay {
+  com.coralogix.metrics.common.CommonDailyUsageFields label_daily_usage = 1;
+
+  com.coralogix.metrics.common.OutputSetStats output_set_stats = 2;
+
+  repeated MetricUsageByLabel metric_usages = 3;
+}
+
+// Shared base stats for all usages
+message CommonUsageFields {
+  uint64 cardinality = 1;
+
+  float fraction_of_daily_cardinality = 2;
+
+  uint64 bytes_volume = 3;
+
+  float unit_usage = 4;
+
+  float fraction_of_daily_usage = 5;
+}
+
+message MetricUsage {
+  string name = 1;
+
+  CommonUsageFields usage = 2;
+
+  uint64 sample_count = 6;
+
+  float fraction_of_daily_sample_count = 7;
+
+  uint32 dimensions_count = 3;
+
+  uint32 variations_count = 4;
+
+  com.coralogix.metrics.common.IngestionTimeStats ingestion_time_stats = 5;
+}
+
+message VariationUsage {
+  repeated string label_names = 1;
+
+  CommonUsageFields usage = 2;
+
+  uint64 sample_count = 4;
+
+  float fraction_of_daily_sample_count = 5;
+
+  com.coralogix.metrics.common.IngestionTimeStats ingestion_time_stats = 3;
+}
+
+message LabelUsage {
+  string name = 1;
+
+  CommonUsageFields usage = 2;
+
+  com.coralogix.metrics.common.IngestionTimeStats ingestion_time_stats = 3;
+
+  uint32 metric_count = 4;
+
+  uint32 variations_count = 5;
+
+  uint64 series_count = 6;
+}
+
+message LabelUsageByMetric {
+  string name = 1;
+
+  CommonUsageFields usage = 2;
+
+  com.coralogix.metrics.common.IngestionTimeStats ingestion_time_stats = 3;
+
+  uint32 variations_count = 4;
+
+  uint64 series_count = 5;
+}
+
+message MetricUsageByLabel {
+  string metric_name = 1;
+
+  CommonUsageFields usage = 2;
+
+  com.coralogix.metrics.common.IngestionTimeStats ingestion_time_stats = 3;
+}

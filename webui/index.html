@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>coralogix-metrics-usage</title>
+  <style>
+    :root {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      background: #0f1419;
+      color: #e7ecf1;
+    }
+    body { max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.25rem; font-weight: 600; }
+    p.note { color: #9aa7b2; font-size: 0.875rem; line-height: 1.5; }
+    label { display: block; margin-top: 1rem; font-size: 0.8rem; color: #9aa7b2; }
+    select, input[type="password"], input[type="text"] {
+      width: 100%; margin-top: 0.35rem; padding: 0.5rem 0.6rem;
+      border-radius: 6px; border: 1px solid #2a3440; background: #1a222d; color: #e7ecf1;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 1.25rem; padding: 0.55rem 1rem; border-radius: 6px;
+      border: none; background: #3d8bfd; color: #fff; font-weight: 600; cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status { margin-top: 1rem; font-size: 0.9rem; white-space: pre-wrap; }
+    #downloads { margin-top: 1.25rem; }
+    #downloads a {
+      display: block; margin: 0.35rem 0; color: #7ec8ff;
+      word-break: break-all;
+    }
+    #otel-wrap { margin-top: 1.5rem; }
+    #otel-wrap label .hint { color: #9aa7b2; font-weight: normal; }
+    #otel-yaml {
+      width: 100%; min-height: 16rem; margin-top: 0.35rem; resize: vertical;
+      font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+      font-size: 0.75rem; line-height: 1.45;
+      border-radius: 6px; border: 1px solid #2a3440; background: #0d1117; color: #e7ecf1;
+      padding: 0.65rem 0.75rem; box-sizing: border-box;
+    }
+    .err { color: #ff8a8a; }
+    .ok { color: #8bd58b; }
+    input#key.invalid { border-color: #a65d5d; }
+    #key-preview {
+      margin-top: 0.4rem;
+      font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      color: #9aa7b2;
+      word-break: break-all;
+      min-height: 1.35rem;
+    }
+    #key-preview.warn { color: #e8b464; }
+    #key-preview.ok { color: #8bd58b; }
+  </style>
+</head>
+<body>
+  <h1>coralogix-metrics-usage</h1>
+  <p class="note">Runs the same scan as the CLI. Use only on a machine you trust; your API key is sent to this local server.</p>
+
+  <label for="region">Environment (region)</label>
+  <select id="region"></select>
+
+  <label for="key">API key</label>
+  <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="cxup_… (35 characters)" />
+  <div id="key-preview" class="key-preview" aria-live="polite"></div>
+
+  <button id="go" type="button">Run scan</button>
+
+  <div id="status"></div>
+  <div id="downloads"></div>
+
+  <div id="otel-wrap" hidden>
+    <label for="otel-yaml"><code>metric_usage_otel_processors.yaml</code> <span class="hint">— select all to copy (Ctrl/Cmd+A)</span></label>
+    <textarea id="otel-yaml" readonly spellcheck="false" rows="22" aria-label="OpenTelemetry processors YAML fragment"></textarea>
+  </div>
+
+  <script>
+    /** Personal API keys: prefix cxup_ and fixed length (see Coralogix UI copy format). */
+    const KEY_PREFIX = "cxup_";
+    const KEY_LEN = "cxup_06HddjzGTkHRCe1wLjFulhBbeJVdhB".length;
+
+    const regionSel = document.getElementById("region");
+    const keyInput = document.getElementById("key");
+    const keyPreview = document.getElementById("key-preview");
+    const goBtn = document.getElementById("go");
+    const statusEl = document.getElementById("status");
+    const dlEl = document.getElementById("downloads");
+    const otelWrap = document.getElementById("otel-wrap");
+    const otelYaml = document.getElementById("otel-yaml");
+
+    async function loadRegions() {
+      const r = await fetch("/api/regions");
+      const data = await r.json();
+      regionSel.innerHTML = "";
+      for (const row of data.regions) {
+        const opt = document.createElement("option");
+        opt.value = row.code;
+        opt.textContent = row.code.toUpperCase() + " — " + row.host;
+        regionSel.appendChild(opt);
+      }
+    }
+
+    function setStatus(html, cls) {
+      statusEl.className = cls || "";
+      statusEl.innerHTML = html;
+    }
+
+    function updateKeyPreview() {
+      const raw = keyInput.value;
+      keyInput.classList.remove("invalid");
+      if (!raw) {
+        keyPreview.textContent = "";
+        keyPreview.className = "key-preview";
+        return;
+      }
+      if (!raw.startsWith(KEY_PREFIX)) {
+        keyPreview.textContent =
+          "Visible check: key must start with " +
+          KEY_PREFIX +
+          " (personal API keys only in this UI).";
+        keyPreview.className = "key-preview warn";
+        keyInput.classList.add("invalid");
+        return;
+      }
+      const rest = raw.slice(KEY_PREFIX.length);
+      let visible;
+      if (rest.length <= 4) {
+        visible = KEY_PREFIX + rest;
+      } else {
+        visible = KEY_PREFIX + "•".repeat(rest.length - 4) + rest.slice(-4);
+      }
+      keyPreview.textContent =
+        "Visible check: " + visible + " — length " + raw.length + "/" + KEY_LEN;
+      if (raw.length !== KEY_LEN) {
+        keyPreview.className = "key-preview warn";
+        keyInput.classList.add("invalid");
+      } else {
+        keyPreview.className = "key-preview ok";
+      }
+    }
+
+    function keyLooksValid(raw) {
+      const s = raw.trim();
+      return s.startsWith(KEY_PREFIX) && s.length === KEY_LEN;
+    }
+
+    keyInput.addEventListener("input", updateKeyPreview);
+    keyInput.addEventListener("paste", () => requestAnimationFrame(updateKeyPreview));
+
+    let pollTimer = null;
+
+    goBtn.addEventListener("click", async () => {
+      dlEl.innerHTML = "";
+      otelWrap.hidden = true;
+      otelYaml.value = "";
+      const region = regionSel.value.trim();
+      const api_key = keyInput.value.trim();
+      if (!api_key) {
+        setStatus("Enter an API key.", "err");
+        return;
+      }
+      if (!keyLooksValid(api_key)) {
+        setStatus(
+          "API key must start with " +
+            KEY_PREFIX +
+            " and be exactly " +
+            KEY_LEN +
+            " characters (trim surrounding spaces). Check the visible check line below the field.",
+          "err",
+        );
+        updateKeyPreview();
+        return;
+      }
+      goBtn.disabled = true;
+      setStatus("Starting…");
+      if (pollTimer) clearInterval(pollTimer);
+
+      let jobId;
+      try {
+        const res = await fetch("/api/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ region, api_key }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setStatus(body.error || res.statusText, "err");
+          goBtn.disabled = false;
+          return;
+        }
+        jobId = body.job_id;
+        if (!jobId) {
+          setStatus("Invalid response from server.", "err");
+          goBtn.disabled = false;
+          return;
+        }
+      } catch (e) {
+        setStatus(String(e), "err");
+        goBtn.disabled = false;
+        return;
+      }
+
+      setStatus("Scan running… this can take several minutes.");
+
+      const poll = async () => {
+        try {
+          const res = await fetch("/api/job/" + encodeURIComponent(jobId));
+          const j = await res.json();
+          if (!res.ok) {
+            setStatus(j.error || res.statusText, "err");
+            otelWrap.hidden = true;
+            otelYaml.value = "";
+            clearInterval(pollTimer);
+            pollTimer = null;
+            goBtn.disabled = false;
+            return;
+          }
+          if (j.status === "queued" || j.status === "running") {
+            setStatus("Scan " + j.status + "…");
+            return;
+          }
+          clearInterval(pollTimer);
+          pollTimer = null;
+          goBtn.disabled = false;
+          if (j.status === "error") {
+            setStatus("Scan failed:\n" + (j.error || "unknown"), "err");
+            otelWrap.hidden = true;
+            otelYaml.value = "";
+            return;
+          }
+          setStatus("Done. Download reports:", "ok");
+          dlEl.innerHTML = "";
+          for (const name of j.files || []) {
+            const a = document.createElement("a");
+            a.href = "/dl/" + encodeURIComponent(jobId) + "/" + encodeURIComponent(name);
+            a.download = name;
+            a.textContent = name;
+            dlEl.appendChild(a);
+          }
+          otelWrap.hidden = false;
+          otelYaml.value = "Loading OTEL YAML…";
+          fetch("/api/job/" + encodeURIComponent(jobId) + "/otel-yaml")
+            .then(async (r) => {
+              if (!r.ok) {
+                const t = await r.text();
+                throw new Error(t || r.statusText);
+              }
+              return r.text();
+            })
+            .then((text) => {
+              otelYaml.value = text;
+            })
+            .catch((e) => {
+              otelYaml.value = "Could not load OTEL YAML: " + e;
+            });
+        } catch (e) {
+          setStatus(String(e), "err");
+          otelWrap.hidden = true;
+          otelYaml.value = "";
+          clearInterval(pollTimer);
+          pollTimer = null;
+          goBtn.disabled = false;
+        }
+      };
+
+      pollTimer = setInterval(poll, 1500);
+      poll();
+    });
+
+    loadRegions().catch((e) => {
+      setStatus("Could not load regions: " + e, "err");
+    });
+  </script>
+</body>
+</html>

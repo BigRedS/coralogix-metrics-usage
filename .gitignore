@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+bin/
+output/
+*.json
+out/
+.DS_Store
+# Regenerate with: scripts/generate-proto.sh
+# internal/gen is committed so `go build` works without protoc.
