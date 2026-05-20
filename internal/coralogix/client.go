@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/avi/coralogix-metrics-usage/internal/region"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/region"
 )
 
 type Client struct {

@@ -83,7 +83,7 @@ const file_com_coralogix_metrics_priority_proto_rawDesc = "" +
 	"\n" +
 	"\x06MEDIUM\x10\x01\x12\a\n" +
 	"\x03LOW\x10\x02\x12\v\n" +
-	"\aBLOCKED\x10\x03BSZQgithub.com/avi/coralogix-metrics-usage/internal/gen/metricpriority;metricpriorityb\x06proto3"
+	"\aBLOCKED\x10\x03B_Z]github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metricpriority;metricpriorityb\x06proto3"
 
 var (
 	file_com_coralogix_metrics_priority_proto_rawDescOnce sync.Once

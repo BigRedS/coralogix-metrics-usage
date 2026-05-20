@@ -1,4 +1,4 @@
-// Command webui is a small localhost server to run coralogix-metrics-usage scans from a browser.
+// Command webui is a small localhost server to run coralogix-unused-metrics-finder scans from a browser.
 package main
 
 import (
@@ -19,10 +19,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/avi/coralogix-metrics-usage/internal/coralogix"
-	"github.com/avi/coralogix-metrics-usage/internal/metricusage"
-	"github.com/avi/coralogix-metrics-usage/internal/region"
-	"github.com/avi/coralogix-metrics-usage/internal/scan"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/coralogix"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/metricusage"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/region"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/scan"
 )
 
 const otelProcessorsYAML = "metric_usage_otel_processors.yaml"
@@ -56,7 +56,7 @@ func main() {
 	mux.Handle("GET /api/job/{id}/otel-yaml", http.HandlerFunc(reg.handleOTELYAMLPreview))
 	mux.Handle("GET /dl/{id}/{file}", http.HandlerFunc(reg.handleDownload))
 
-	log.Printf("coralogix-metrics-usage webui listening on http://%s", *listen)
+	log.Printf("coralogix-unused-metrics-finder webui listening on http://%s", *listen)
 	if err := http.ListenAndServe(*listen, mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatal(err)
 	}
@@ -165,7 +165,7 @@ func (reg *registry) handleRun(w http.ResponseWriter, r *http.Request) {
 func (reg *registry) runScan(j *job, apiHost, apiKey string) {
 	j.setStatus("running")
 
-	dir, err := os.MkdirTemp("", "coralogix-metrics-usage-webui-*")
+	dir, err := os.MkdirTemp("", "coralogix-unused-metrics-finder-webui-*")
 	if err != nil {
 		j.fail(fmt.Errorf("temp dir: %w", err))
 		return

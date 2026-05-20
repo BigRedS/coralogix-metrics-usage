@@ -1,4 +1,4 @@
-// Command coralogix-metrics-usage scans Coralogix dashboards, alerts, and SLOs for PromQL
+// Command coralogix-unused-metrics-finder scans Coralogix dashboards, alerts, and SLOs for PromQL
 // metric references and compares them to the live metrics catalog.
 package main
 
@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/avi/coralogix-metrics-usage/internal/coralogix"
-	"github.com/avi/coralogix-metrics-usage/internal/metricusage"
-	"github.com/avi/coralogix-metrics-usage/internal/region"
-	"github.com/avi/coralogix-metrics-usage/internal/scan"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/coralogix"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/metricusage"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/region"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/scan"
 )
 
 func main() {

@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	metriccommon "github.com/avi/coralogix-metrics-usage/internal/gen/metriccommon"
-	metricusages "github.com/avi/coralogix-metrics-usage/internal/gen/metricusages"
-	"github.com/avi/coralogix-metrics-usage/internal/promqlextract"
+	metriccommon "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metriccommon"
+	metricusages "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metricusages"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/promqlextract"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/grpc"

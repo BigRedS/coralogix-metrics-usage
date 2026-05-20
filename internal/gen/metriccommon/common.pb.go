@@ -7,7 +7,7 @@
 package metriccommon
 
 import (
-	metricpriority "github.com/avi/coralogix-metrics-usage/internal/gen/metricpriority"
+	metricpriority "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metricpriority"
 	date "google.golang.org/genproto/googleapis/type/date"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -641,7 +641,7 @@ const file_com_coralogix_metrics_common_proto_rawDesc = "" +
 	"\rPILLAR_SOURCE\x10\x00\x12\x13\n" +
 	"\x0fPILLAR_PRIORITY\x10\x01\x12\x16\n" +
 	"\x12PILLAR_METRIC_NAME\x10\x02\x12\x17\n" +
-	"\x13PILLAR_SERVICE_NAME\x10\x03BOZMgithub.com/avi/coralogix-metrics-usage/internal/gen/metriccommon;metriccommonb\x06proto3"
+	"\x13PILLAR_SERVICE_NAME\x10\x03B[ZYgithub.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metriccommon;metriccommonb\x06proto3"
 
 var (
 	file_com_coralogix_metrics_common_proto_rawDescOnce sync.Once

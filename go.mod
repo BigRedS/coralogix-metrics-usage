@@ -1,4 +1,4 @@
-module github.com/avi/coralogix-metrics-usage
+module github.com/BigRedS/coralogix-unused-metrics-finder
 
 go 1.25.0
 

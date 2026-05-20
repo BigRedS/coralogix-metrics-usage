@@ -1,9 +1,9 @@
-# coralogix-metrics-usage Web UI (hack / lab)
+# coralogix-unused-metrics-finder Web UI (hack / lab)
 
 Small **localhost** server: pick region, paste API key, run a scan, download the generated files.
 
 ```bash
-cd /path/to/coralogix-metrics-usage
+cd /path/to/coralogix-unused-metrics-finder
 go run ./webui -listen localhost:8765
 ```
 
@@ -29,7 +29,7 @@ The same prebuilt image is on GHCR (multi-arch, `linux/amd64` + `linux/arm64`):
         --cap-drop=ALL \
         --security-opt=no-new-privileges \
         -p 127.0.0.1:8765:8765 \
-        ghcr.io/bigreds/coralogix-metrics-usage-webui:latest
+        ghcr.io/bigreds/coralogix-unused-metrics-finder-webui:latest
 
 Then open http://localhost:8765. The `--read-only` + `--tmpfs /tmp` pair keeps the
 container rootfs immutable; job output lives in the tmpfs and dies with the container.

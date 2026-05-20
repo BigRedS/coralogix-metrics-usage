@@ -45,25 +45,25 @@ jobs:
           CGO_ENABLED: 0
         run: |
           mkdir -p dist
-          bin="coralogix-metrics-usage${{ matrix.ext }}"
-          go build -trimpath -ldflags "-s -w" -o "dist/$bin" ./cmd/coralogix-metrics-usage
+          bin="coralogix-unused-metrics-finder${{ matrix.ext }}"
+          go build -trimpath -ldflags "-s -w" -o "dist/$bin" ./cmd/coralogix-unused-metrics-finder
 
       - name: Package
         id: package
         run: |
-          name="coralogix-metrics-usage-${{ matrix.goos }}-${{ matrix.goarch }}"
+          name="coralogix-unused-metrics-finder-${{ matrix.goos }}-${{ matrix.goarch }}"
           cd dist
           if [ "${{ matrix.goos }}" = "windows" ]; then
-            zip "${name}.zip" "coralogix-metrics-usage${{ matrix.ext }}"
+            zip "${name}.zip" "coralogix-unused-metrics-finder${{ matrix.ext }}"
             echo "archive=dist/${name}.zip" >> "$GITHUB_OUTPUT"
           else
-            tar -czf "${name}.tar.gz" "coralogix-metrics-usage${{ matrix.ext }}"
+            tar -czf "${name}.tar.gz" "coralogix-unused-metrics-finder${{ matrix.ext }}"
             echo "archive=dist/${name}.tar.gz" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/upload-artifact@v4
         with:
-          name: coralogix-metrics-usage-${{ matrix.goos }}-${{ matrix.goarch }}
+          name: coralogix-unused-metrics-finder-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ${{ steps.package.outputs.archive }}
           if-no-files-found: error
 

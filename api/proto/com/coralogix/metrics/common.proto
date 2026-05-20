@@ -6,7 +6,7 @@ import "com/coralogix/metrics/priority.proto";
 
 package com.coralogix.metrics.common;
 
-option go_package = "github.com/avi/coralogix-metrics-usage/internal/gen/metriccommon;metriccommon";
+option go_package = "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metriccommon;metriccommon";
 
 // Shared base stats for all daily usages
 message CommonDailyUsageFields {

@@ -10,11 +10,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/avi/coralogix-metrics-usage/internal/coralogix"
-	"github.com/avi/coralogix-metrics-usage/internal/metricusage"
-	"github.com/avi/coralogix-metrics-usage/internal/promqlextract"
-	"github.com/avi/coralogix-metrics-usage/internal/report"
-	"github.com/avi/coralogix-metrics-usage/internal/status"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/coralogix"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/metricusage"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/promqlextract"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/report"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/status"
 	"golang.org/x/sync/errgroup"
 )
 

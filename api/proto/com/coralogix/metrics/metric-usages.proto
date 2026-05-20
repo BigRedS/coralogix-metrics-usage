@@ -6,7 +6,7 @@ import "com/coralogix/metrics/common.proto";
 
 package com.coralogix.metrics.metric_usages;
 
-option go_package = "github.com/avi/coralogix-metrics-usage/internal/gen/metricusages;metricusages";
+option go_package = "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metricusages;metricusages";
 
 service UsageService {
   rpc GetMetricUsages ( GetMetricUsagesRequest ) returns ( GetMetricUsagesResponse );

@@ -7,7 +7,7 @@
 package metricusages
 
 import (
-	metriccommon "github.com/avi/coralogix-metrics-usage/internal/gen/metriccommon"
+	metriccommon "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metriccommon"
 	date "google.golang.org/genproto/googleapis/type/date"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -1956,7 +1956,7 @@ const file_com_coralogix_metrics_metric_usages_proto_rawDesc = "" +
 	"\x13GetSingleLabelUsage\x12?.com.coralogix.metrics.metric_usages.GetSingleLabelUsageRequest\x1a@.com.coralogix.metrics.metric_usages.GetSingleLabelUsageResponse\x12\xa1\x01\n" +
 	"\x16GetLabelUsagesByMetric\x12B.com.coralogix.metrics.metric_usages.GetLabelUsagesByMetricRequest\x1aC.com.coralogix.metrics.metric_usages.GetLabelUsagesByMetricResponse\x12\xa1\x01\n" +
 	"\x16GetMetricUsagesByLabel\x12B.com.coralogix.metrics.metric_usages.GetMetricUsagesByLabelRequest\x1aC.com.coralogix.metrics.metric_usages.GetMetricUsagesByLabelResponse\x12\x9b\x01\n" +
-	"\x14GetTotalMetricUsages\x12@.com.coralogix.metrics.metric_usages.GetTotalMetricUsagesRequest\x1aA.com.coralogix.metrics.metric_usages.GetTotalMetricUsagesResponseBOZMgithub.com/avi/coralogix-metrics-usage/internal/gen/metricusages;metricusagesb\x06proto3"
+	"\x14GetTotalMetricUsages\x12@.com.coralogix.metrics.metric_usages.GetTotalMetricUsagesRequest\x1aA.com.coralogix.metrics.metric_usages.GetTotalMetricUsagesResponseB[ZYgithub.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metricusages;metricusagesb\x06proto3"
 
 var (
 	file_com_coralogix_metrics_metric_usages_proto_rawDescOnce sync.Once

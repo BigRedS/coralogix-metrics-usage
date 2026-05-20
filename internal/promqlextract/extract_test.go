@@ -3,7 +3,7 @@ package promqlextract_test
 import (
 	"testing"
 
-	"github.com/avi/coralogix-metrics-usage/internal/promqlextract"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/promqlextract"
 )
 
 func TestExtractFromPromQL(t *testing.T) {

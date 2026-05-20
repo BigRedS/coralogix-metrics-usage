@@ -1,6 +1,6 @@
-# coralogix-metrics-usage
+# coralogix-unused-metrics-finder
 
-**coralogix-metrics-usage** is a tool for discovering unused metrics series in Coralogix, and generating OpenTelemetry config to block them.
+**coralogix-unused-metrics-finder** is a tool for discovering unused metrics series in Coralogix, and generating OpenTelemetry config to block them.
 
 
 ---
@@ -22,8 +22,8 @@ You will probably want these presets:
 ## Build & run
 
 ```bash
-go build -o bin/coralogix-metrics-usage ./cmd/coralogix-metrics-usage/
-./bin/coralogix-metrics-usage --region eu2 --key "$CX_API_KEY" --output-dir ./out
+go build -o bin/coralogix-unused-metrics-finder ./cmd/coralogix-unused-metrics-finder/
+./bin/coralogix-unused-metrics-finder --region eu2 --key "$CX_API_KEY" --output-dir ./out
 ```
 
 See `--help` for flags (`--usage-lookback-days`, `--usage-billing-calendar-months`, `--skip-billing`, `--skip-dashboards`, `--skip-alerts`, `--skip-slo`, etc.).

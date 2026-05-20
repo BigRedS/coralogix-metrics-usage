@@ -4,7 +4,7 @@
 #
 # Build context is the repo root (the webui imports internal/... packages).
 # From the repo root:
-#   docker build -f webui/Dockerfile -t coralogix-metrics-usage-webui .
+#   docker build -f webui/Dockerfile -t coralogix-unused-metrics-finder-webui .
 #
 # Designed to run with `--read-only`:
 #   docker run --rm \
@@ -13,7 +13,7 @@
 #       --cap-drop=ALL \
 #       --security-opt=no-new-privileges \
 #       -p 8765:8765 \
-#       coralogix-metrics-usage-webui
+#       coralogix-unused-metrics-finder-webui
 #
 # The webui writes job output under os.MkdirTemp("") (i.e. /tmp), so /tmp
 # must be writable — a tmpfs satisfies that without making the rootfs rw.

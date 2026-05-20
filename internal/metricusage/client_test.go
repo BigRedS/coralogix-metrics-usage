@@ -3,7 +3,7 @@ package metricusage_test
 import (
 	"testing"
 
-	"github.com/avi/coralogix-metrics-usage/internal/metricusage"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/metricusage"
 )
 
 func TestSeriesKeyFromVariation(t *testing.T) {

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package com.coralogix.metrics.priority;
 
-option go_package = "github.com/avi/coralogix-metrics-usage/internal/gen/metricpriority;metricpriority";
+option go_package = "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metricpriority;metricpriority";
 
 enum Priority {
   HIGH = 0;
