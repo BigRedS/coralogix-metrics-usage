@@ -11,7 +11,11 @@
       color: #e7ecf1;
     }
     body { max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
-    h1 { font-size: 1.25rem; font-weight: 600; }
+    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem; }
+    h1 a { color: inherit; text-decoration: none; border-bottom: 1px dotted #7ec8ff; }
+    h1 a:hover { color: #7ec8ff; }
+    p.docs-link { margin: 0.25rem 0 1rem; font-size: 0.875rem; }
+    p.docs-link a { color: #7ec8ff; }
     p.note { color: #9aa7b2; font-size: 0.875rem; line-height: 1.5; }
     label { display: block; margin-top: 1rem; font-size: 0.8rem; color: #9aa7b2; }
     select, input[type="password"], input[type="text"] {
@@ -42,6 +46,8 @@
     .err { color: #ff8a8a; }
     .ok { color: #8bd58b; }
     input#key.invalid { border-color: #a65d5d; }
+    footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #2a3440; font-size: 0.8rem; color: #9aa7b2; }
+    footer a { color: #7ec8ff; }
     #key-preview {
       margin-top: 0.4rem;
       font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, monospace;
@@ -56,7 +62,8 @@
   </style>
 </head>
 <body>
-  <h1>coralogix-metrics-usage</h1>
+  <h1><a href="https://github.com/BigRedS/coralogix-metrics-usage" target="_blank" rel="noopener noreferrer">coralogix-metrics-usage</a></h1>
+  <p class="docs-link"><a href="https://github.com/BigRedS/coralogix-metrics-usage#readme" target="_blank" rel="noopener noreferrer">What is this? &amp; which API key permissions do I need? →</a></p>
   <p class="note">Runs the same scan as the CLI. Use only on a machine you trust; your API key is sent to this local server.</p>
 
   <label for="region">Environment (region)</label>
@@ -75,6 +82,10 @@
     <label for="otel-yaml"><code>metric_usage_otel_processors.yaml</code> <span class="hint">— select all to copy (Ctrl/Cmd+A)</span></label>
     <textarea id="otel-yaml" readonly spellcheck="false" rows="22" aria-label="OpenTelemetry processors YAML fragment"></textarea>
   </div>
+
+  <footer>
+    <a href="https://github.com/BigRedS/coralogix-metrics-usage" target="_blank" rel="noopener noreferrer">github.com/BigRedS/coralogix-metrics-usage</a>
+  </footer>
 
   <script>
     /** Personal API keys: prefix cxup_ and fixed length (see Coralogix UI copy format). */

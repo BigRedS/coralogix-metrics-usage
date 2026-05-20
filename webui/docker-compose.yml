@@ -1,0 +1,26 @@
+# Read-only deployment of the coralogix-metrics-usage webui.
+#
+# Run from this directory:
+#   docker compose up --build
+#
+# Then open http://localhost:8765.
+#
+# The build context is the repo root because the webui imports internal/...
+# packages from the parent Go module.
+
+services:
+  webui:
+    build:
+      context: ..
+      dockerfile: webui/Dockerfile
+    image: coralogix-metrics-usage-webui
+    ports:
+      - "127.0.0.1:8765:8765"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=512m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
