@@ -16,6 +16,57 @@ import (
 	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/scan"
 )
 
+func runDebugBilling(ctx context.Context, billing *metricusage.Client, metric string, usageDays, usageMonths int) int {
+	now := time.Now().UTC().Truncate(24 * time.Hour)
+	var startDay, endDay time.Time
+	if usageMonths > 0 {
+		firstThisMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+		endDay = firstThisMonth.AddDate(0, 0, -1)
+		startDay = firstThisMonth.AddDate(0, -usageMonths, 0)
+	} else {
+		endDay = now
+		startDay = endDay.AddDate(0, 0, -(usageDays - 1))
+	}
+
+	fmt.Fprintf(os.Stderr, "debug: metric=%q start=%s end=%s\n", metric, startDay.Format("2006-01-02"), endDay.Format("2006-01-02"))
+	resp, err := billing.DebugRawVariations(ctx, metric, startDay, endDay)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "debug fetch failed:", err)
+		return 1
+	}
+
+	days := resp.GetDailyUsages()
+	fmt.Printf("daily_usages: %d day(s) returned\n", len(days))
+	for di, d := range days {
+		md := d.GetMetricDailyUsage()
+		date := md.GetDate()
+		stats := d.GetOutputSetStats()
+		vars := d.GetVariationUsages()
+		fmt.Printf("\n[day %d] date=%04d-%02d-%02d matched_count=%d daily_unit_usage=%g daily_bytes_volume=%d daily_cardinality=%d variation_usages_in_page=%d total_sample_count=%d\n",
+			di, date.GetYear(), date.GetMonth(), date.GetDay(),
+			stats.GetMatchedCount(),
+			md.GetDailyUnitUsage(),
+			md.GetDailyBytesVolume(),
+			md.GetDailyCardinality(),
+			len(vars),
+			d.GetTotalSampleCount(),
+		)
+		const sampleN = 5
+		for vi, v := range vars {
+			if vi >= sampleN {
+				fmt.Printf("  ... (%d more variations)\n", len(vars)-sampleN)
+				break
+			}
+			u := v.GetUsage()
+			fmt.Printf("  variation[%d] label_names=%v unit_usage=%g bytes_volume=%d sample_count=%d cardinality=%d\n",
+				vi, v.GetLabelNames(),
+				u.GetUnitUsage(), u.GetBytesVolume(), v.GetSampleCount(), u.GetCardinality(),
+			)
+		}
+	}
+	return 0
+}
+
 func main() {
 	os.Exit(run())
 }
@@ -35,6 +86,7 @@ func run() int {
 	skipAlerts := flag.Bool("skip-alerts", false, "skip alert definitions v3 (omit Alerts preset)")
 	skipSLO := flag.Bool("skip-slo", false, "skip SLO list (omit SLO preset)")
 	quiet := flag.Bool("quiet", false, "disable progress status line on stderr")
+	debugBillingMetric := flag.String("debug-billing-metric", "", "if set, dump the raw GetVariationUsagesByMetric response for this metric over --usage-lookback-days and exit (skips the full scan)")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [flags]\n\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Required flags: --region and --key\n\n")
@@ -71,6 +123,14 @@ func run() int {
 		defer billingClient.Close()
 	}
 
+	if *debugBillingMetric != "" {
+		if billingClient == nil {
+			fmt.Fprintln(os.Stderr, "--debug-billing-metric requires --usage-lookback-days > 0 (or --usage-billing-calendar-months > 0) and no --skip-billing")
+			return 2
+		}
+		return runDebugBilling(ctx, billingClient, *debugBillingMetric, *usageDays, *usageMonths)
+	}
+
 	rep, err := scan.Run(ctx, client, scan.Options{
 		SeriesLookback:             time.Duration(*lookbackHours * float64(time.Hour)),
 		SeriesLimitPerMetric:       *seriesLimit,
@@ -99,6 +159,7 @@ func run() int {
 	fmt.Printf("Wrote %s/metric_usage_unused_by_cost.csv\n", *outputDir)
 	fmt.Printf("Wrote %s/metric_usage_unused_by_metric.json\n", *outputDir)
 	fmt.Printf("Wrote %s/metric_usage_unused_by_metric.csv\n", *outputDir)
+	fmt.Printf("Wrote %s/metric_usage_all_by_metric.csv\n", *outputDir)
 	fmt.Printf("Wrote %s/metric_usage_otel_processors.yaml\n", *outputDir)
 	m := rep.Meta
 	fmt.Printf(

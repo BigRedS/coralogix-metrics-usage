@@ -2,22 +2,34 @@ package metricusage
 
 import "testing"
 
-func TestLabelsSubset(t *testing.T) {
-	if !labelsSubset(map[string]string{"a": "1"}, map[string]string{"a": "1", "b": "2"}) {
-		t.Fatal("expected subset")
+func TestVariationKeyFromCatalogLabels_matchesVariationKey(t *testing.T) {
+	// A catalog series whose label keys exactly match a variation's label_names set
+	// must produce the same key; that's the equality EnrichCatalog relies on.
+	catalog := map[string]string{
+		"__name__": "http_requests_total",
+		"job":      "api",
+		"instance": "1",
 	}
-	if labelsSubset(map[string]string{"a": "2"}, map[string]string{"a": "1"}) {
-		t.Fatal("expected not subset")
+	variation := VariationKey("http_requests_total", []string{"__name__", "job", "instance"})
+	got := variationKeyFromCatalogLabels(catalog)
+	if got != variation {
+		t.Fatalf("catalog key %q != variation key %q", got, variation)
 	}
 }
 
-func TestParseCanonicalSeries_bracedPrometheusSelector(t *testing.T) {
-	key := `{__name__="http_requests_total",job="api",instance="1"}`
-	lbls, err := parseCanonicalSeries(key)
-	if err != nil {
-		t.Fatal(err)
+func TestVariationKeyFromCatalogLabels_differingValuesShareKey(t *testing.T) {
+	// Values differ but label-name sets match → same variation key.
+	a := variationKeyFromCatalogLabels(map[string]string{"__name__": "m", "job": "api", "env": "prod"})
+	b := variationKeyFromCatalogLabels(map[string]string{"__name__": "m", "job": "batch", "env": "dev"})
+	if a != b {
+		t.Fatalf("expected same key, got %q and %q", a, b)
 	}
-	if lbls["__name__"] != "http_requests_total" || lbls["job"] != "api" || lbls["instance"] != "1" {
-		t.Fatalf("labels: %#v", lbls)
+}
+
+func TestVariationKeyFromCatalogLabels_differingLabelSetsDiffer(t *testing.T) {
+	a := variationKeyFromCatalogLabels(map[string]string{"__name__": "m", "job": "api"})
+	b := variationKeyFromCatalogLabels(map[string]string{"__name__": "m", "job": "api", "env": "prod"})
+	if a == b {
+		t.Fatalf("expected different keys, both = %q", a)
 	}
 }

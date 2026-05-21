@@ -4,13 +4,14 @@ package metricusage
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	metriccommon "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metriccommon"
 	metricusages "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/metricusages"
-	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/promqlextract"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/genproto/googleapis/type/date"
 	"google.golang.org/grpc"
@@ -105,10 +106,7 @@ func (c *Client) FetchVariationUnits(ctx context.Context, metricName string, sta
 		var maxMatched uint32
 		for _, day := range resp.GetDailyUsages() {
 			for _, v := range day.GetVariationUsages() {
-				key, err := SeriesKeyFromVariation(metricName, v.GetLabelNames())
-				if err != nil {
-					continue
-				}
+				key := VariationKey(metricName, v.GetLabelNames())
 				agg := out[key]
 				if u := v.GetUsage(); u != nil {
 					agg.UnitUsage += float64(u.GetUnitUsage())
@@ -131,44 +129,61 @@ func (c *Client) FetchVariationUnits(ctx context.Context, metricName string, sta
 	}
 }
 
-// SeriesKeyFromVariation builds the canonical series key for a Coralogix variation.
-func SeriesKeyFromVariation(metricName string, labelNames []string) (string, error) {
-	labels, err := LabelsFromVariation(metricName, labelNames)
-	if err != nil {
-		return "", err
+// DebugRawVariations returns the unparsed first page of GetVariationUsagesByMetric for one
+// metric across the inclusive UTC date range. Intended for debugging "unit_usage=0 everywhere"
+// symptoms — callers should print the response fields directly.
+func (c *Client) DebugRawVariations(ctx context.Context, metricName string, startDay, endDay time.Time) (*metricusages.GetVariationUsagesByMetricResponse, error) {
+	startDay = startDay.UTC().Truncate(24 * time.Hour)
+	endDay = endDay.UTC().Truncate(24 * time.Hour)
+	if endDay.Before(startDay) {
+		return nil, fmt.Errorf("usage end date before start date")
 	}
-	return promqlextract.CanonicalSeries(labels), nil
+	req := &metricusages.GetVariationUsagesByMetricRequest{
+		Common: &metriccommon.CommonRequestFields{
+			StartDate:   toProtoDate(startDay),
+			EndDate:     toProtoDate(endDay),
+			StartOffset: 0,
+			Length:      variationPageSize,
+		},
+		MetricName: metricName,
+	}
+	return c.svc.GetVariationUsagesByMetric(ctx, req)
 }
 
-// LabelsFromVariation parses Coralogix variation label_names (e.g. "job=api") into a label map.
-func LabelsFromVariation(metricName string, labelNames []string) (map[string]string, error) {
-	labels := map[string]string{"__name__": metricName}
+// VariationKey produces a stable key identifying a Coralogix billing variation. CX groups
+// series into variations by the SET OF LABEL NAMES present (not by label values), so the
+// key is the sorted set of label keys (always including "__name__"). Multiple catalog
+// series whose label keys equal the variation's key share that variation's billed usage.
+//
+// CX may emit label_names either as bare names ("job") or as "name=value" pairs depending
+// on the API version; either way only the key portion contributes — values are discarded.
+func VariationKey(metricName string, labelNames []string) string {
+	keys := map[string]struct{}{"__name__": {}}
 	for _, s := range labelNames {
-		k, v, ok := splitLabelPair(s)
-		if !ok {
-			return nil, fmt.Errorf("invalid label pair %q", s)
+		k := s
+		if i := strings.IndexByte(s, '='); i >= 0 {
+			k = s[:i]
 		}
-		labels[k] = v
+		keys[k] = struct{}{}
 	}
-	return labels, nil
+	sorted := make([]string, 0, len(keys))
+	for k := range keys {
+		sorted = append(sorted, k)
+	}
+	sort.Strings(sorted)
+	return metricName + "|" + strings.Join(sorted, ",")
 }
 
-func splitLabelPair(s string) (key, value string, ok bool) {
-	for i := 0; i < len(s); i++ {
-		if s[i] == '=' {
-			return s[:i], s[i+1:], true
-		}
+// variationKeyFromCatalogLabels builds the same VariationKey from a catalog series'
+// labels map (using only the label names, ignoring values).
+func variationKeyFromCatalogLabels(labels map[string]string) string {
+	mn := labels["__name__"]
+	keys := make([]string, 0, len(labels))
+	for k := range labels {
+		keys = append(keys, k)
 	}
-	return "", "", false
-}
-
-func labelsSubset(subset, full map[string]string) bool {
-	for k, v := range subset {
-		if full[k] != v {
-			return false
-		}
-	}
-	return true
+	sort.Strings(keys)
+	return mn + "|" + strings.Join(keys, ",")
 }
 
 func splitUsage(u UnitsUsage, n int) UnitsUsage {
@@ -185,8 +200,13 @@ func splitUsage(u UnitsUsage, n int) UnitsUsage {
 }
 
 // EnrichCatalog maps variation-level CX billing onto Prometheus catalog series keys.
-// When Coralogix reports a partial label set for a variation, all catalog series whose labels
-// are a superset share that row's usage (values are divided evenly).
+// A CX "variation" is identified by its label-name set: every catalog series whose labels
+// have the same key set as the variation belongs to that variation, and the variation's
+// billed usage is divided evenly across them.
+//
+// Per-metric fetch errors are returned as warnings (one string per failed metric) rather
+// than aborting the whole batch — a single 5xx from CX must not throw away every other
+// metric's billing data. The error return is reserved for the caller's ctx being cancelled.
 func (c *Client) EnrichCatalog(
 	ctx context.Context,
 	catalogSeries map[string]map[string]string,
@@ -194,7 +214,7 @@ func (c *Client) EnrichCatalog(
 	startDay, endDay time.Time,
 	workers int,
 	onProgress func(done, total int, metric string),
-) (map[string]UnitsUsage, map[string]int, error) {
+) (map[string]UnitsUsage, map[string]int, []string, error) {
 	if workers <= 0 {
 		workers = 4
 	}
@@ -210,6 +230,7 @@ func (c *Client) EnrichCatalog(
 
 	result := make(map[string]UnitsUsage)
 	splitCount := make(map[string]int)
+	var warnings []string
 	var mu sync.Mutex
 
 	total := len(metricNames)
@@ -238,75 +259,37 @@ func (c *Client) EnrichCatalog(
 
 			byVar, err := c.FetchVariationUnits(gctx, mname, startDay, endDay)
 			if err != nil {
-				return fmt.Errorf("%q: %w", mname, err)
+				// If the parent ctx is done, bubble the cancellation up so the whole batch stops.
+				if ctx.Err() != nil {
+					return ctx.Err()
+				}
+				mu.Lock()
+				warnings = append(warnings, fmt.Sprintf("%q: %v", mname, err))
+				mu.Unlock()
+				if onProgress != nil {
+					onProgress(int(done.Add(1)), total, mname)
+				}
+				return nil
 			}
 
-			type varEntry struct {
-				key    string
-				labels map[string]string
-				usage  UnitsUsage
-			}
-			entries := make([]varEntry, 0, len(byVar))
-			for k, u := range byVar {
-				lbls, err := parseCanonicalSeries(k)
-				if err != nil {
-					continue
-				}
-				entries = append(entries, varEntry{key: k, labels: lbls, usage: u})
+			// Group catalog series by their label-name set; that's the unit CX bills against.
+			byVarKey := make(map[string][]string)
+			for _, sk := range skList {
+				vk := variationKeyFromCatalogLabels(catalogSeries[sk])
+				byVarKey[vk] = append(byVarKey[vk], sk)
 			}
 
 			localResult := make(map[string]UnitsUsage)
 			localSplit := make(map[string]int)
-			exact := make(map[string]bool)
-
-			for _, sk := range skList {
-				if u, ok := byVar[sk]; ok {
-					localResult[sk] = u
-					localSplit[sk] = 1
-					exact[sk] = true
-				}
-			}
-
-			subsetGroups := make(map[string][]string)
-			for _, sk := range skList {
-				if exact[sk] {
+			for vk, usage := range byVar {
+				group := byVarKey[vk]
+				if len(group) == 0 {
 					continue
 				}
-				sl := catalogSeries[sk]
-				var best *varEntry
-				bestScore := -1
-				var bestUsage float64
-				for i := range entries {
-					e := &entries[i]
-					if !labelsSubset(e.labels, sl) {
-						continue
-					}
-					score := len(e.labels)
-					u := e.usage.UnitUsage
-					if score > bestScore || (score == bestScore && u > bestUsage) {
-						bestScore = score
-						bestUsage = u
-						best = e
-					}
-				}
-				if best != nil {
-					subsetGroups[best.key] = append(subsetGroups[best.key], sk)
-				}
-			}
-
-			for vkey, group := range subsetGroups {
-				u := byVar[vkey]
-				n := len(group)
-				if n == 0 {
-					continue
-				}
-				part := splitUsage(u, n)
+				part := splitUsage(usage, len(group))
 				for _, sk := range group {
-					if exact[sk] {
-						continue
-					}
 					localResult[sk] = part
-					localSplit[sk] = n
+					localSplit[sk] = len(group)
 				}
 			}
 
@@ -327,31 +310,9 @@ func (c *Client) EnrichCatalog(
 	}
 
 	if err := g.Wait(); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return result, splitCount, nil
-}
-
-func parseCanonicalSeries(seriesKey string) (map[string]string, error) {
-	if seriesKey == "" {
-		return nil, fmt.Errorf("empty series key")
-	}
-	// Catalog keys are promqlextract.CanonicalSeries output: {__name__="m",label="v",...}
-	// Parse them directly as PromQL vector selectors. Do not prefix with a fake metric name:
-	// x{__name__="m",...} is invalid ("metric name must not be set twice") and breaks subset matching.
-	sel := promqlextract.ExtractFromPromQL(seriesKey)
-	if len(sel) == 0 {
-		return nil, fmt.Errorf("cannot parse %q", seriesKey)
-	}
-	mname := promqlextract.MetricName(sel[0].Selector)
-	if mname == "" {
-		return nil, fmt.Errorf("no metric name in %q", seriesKey)
-	}
-	labels := map[string]string{"__name__": mname}
-	for _, m := range sel[0].Selector.LabelMatchers {
-		labels[m.Name] = m.Value
-	}
-	return labels, nil
+	return result, splitCount, warnings, nil
 }
 
 func toProtoDate(t time.Time) *date.Date {

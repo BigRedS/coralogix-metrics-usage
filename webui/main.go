@@ -38,6 +38,7 @@ var allowedDownloads = []string{
 	"metric_usage_unused_by_cost.csv",
 	"metric_usage_unused_by_metric.json",
 	"metric_usage_unused_by_metric.csv",
+	"metric_usage_all_by_metric.csv",
 	otelProcessorsYAML,
 }
 
