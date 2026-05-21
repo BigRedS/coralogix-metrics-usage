@@ -209,6 +209,12 @@ func (r *Report) Write(outputDir string) error {
 		return err
 	}
 
+	allByMetric := AggregateAllByMetric(r.UsedSeriesInCatalog, r.UnusedSeriesInCatalog)
+	allByMetricCSVPath := outputDir + "/metric_usage_all_by_metric.csv"
+	if err := WriteAllByMetricCSV(allByMetricCSVPath, allByMetric); err != nil {
+		return err
+	}
+
 	otelPath := outputDir + "/metric_usage_otel_processors.yaml"
 	if err := WriteOTELUnusedProcessorsYAML(otelPath, r.UsedSeriesInCatalog, r.UnusedSeriesInCatalog); err != nil {
 		return err

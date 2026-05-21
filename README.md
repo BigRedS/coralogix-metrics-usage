@@ -53,6 +53,7 @@ If your API key lacks **Dashboards**, **Alerts**, or **SLO** access, pass **`--s
 | **`metric_usage_unused_by_cost.csv`** | Same data as the JSON cost file, as a spreadsheet-friendly CSV. |
 | **`metric_usage_unused_by_metric.json`** | **Rollup**: one row per unused **`__name__`**, sorted by **`unit_usage_sum`** — sums billing fields over unused series that have CX data (see below). |
 | **`metric_usage_unused_by_metric.csv`** | Same metric rollup as spreadsheet-friendly CSV. |
+| **`metric_usage_all_by_metric.csv`** | One row per **`__name__`** across **both** used and unused catalog series: `metric_name`, `series_count` (distinct catalog series), `unit_usage_sum` (summed CX billing over the window). |
 | **`metric_usage_otel_processors.yaml`** | Fragment for **otelcol-contrib**: drops metrics that are unused end-to-end, and strips label keys that appear only on unused series for partially-used metrics (see below). |
 
 ### CX billing window (**`unit_usage`** sample span)

@@ -335,9 +335,12 @@ func Run(ctx context.Context, client *coralogix.Client, opt Options) (*report.Re
 			} else {
 				setStatus(fmt.Sprintf("fetching CX unit usage (%d UTC days)…", billingInclusiveDays))
 			}
-			raw, splitCounts, err := opt.Billing.EnrichCatalog(ctx, catalogSeries, metricNames, startDay, endDay, opt.Workers, func(done, total int, metric string) {
+			raw, splitCounts, perMetricWarnings, err := opt.Billing.EnrichCatalog(ctx, catalogSeries, metricNames, startDay, endDay, opt.Workers, func(done, total int, metric string) {
 				setStatus(fmt.Sprintf("billing %d/%d — %s", done, total, truncate(metric, 40)))
 			})
+			for _, w := range perMetricWarnings {
+				warnings = append(warnings, "billing units: "+w)
+			}
 			if err != nil {
 				warnings = append(warnings, "billing units: "+err.Error())
 			} else {
