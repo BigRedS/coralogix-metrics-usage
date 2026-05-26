@@ -45,6 +45,8 @@ If your API key lacks **Dashboards**, **Alerts**, or **SLO** access, pass **`--s
 
 ## Output files
 
+If the API key has team-admin scope the tool first calls **`TeamService.ListTeams`** and uses the returned team name (sanitized to ASCII alphanumerics + `._-`) as a prefix on every output file, e.g. `MyTeam-metric_usage_summary.json`. If the call fails (typically `PermissionDenied` for narrower keys), filenames stay unprefixed and the rest of the scan continues normally — no extra flag needed.
+
 | File | Description |
 |------|-------------|
 | `metric_usage_summary.json` | Full report: correlation results, warnings, `meta` (including `usage_lookback_days`, `series_with_billing_data`, `unused_series_with_billing`, `coralogix_internal_metric_names_skipped`). Unused entries here use optional nested `"billing": { "unit_usage": … }` when matched. |

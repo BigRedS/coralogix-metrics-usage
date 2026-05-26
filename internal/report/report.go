@@ -148,30 +148,42 @@ func unusedRowsFromSeries(list []UnusedSeries, splitN map[string]int) []UnusedBy
 	return out
 }
 
-func (r *Report) Write(outputDir string) error {
+// Write emits the report files to outputDir. If filenamePrefix is non-empty it is
+// prepended (with a trailing "-") to every basename — e.g. "MyTeam-metric_usage_summary.json".
+// Returns the list of written basenames so callers (CLI, webui) don't have to recompute them.
+func (r *Report) Write(outputDir, filenamePrefix string) ([]string, error) {
 	if err := os.MkdirAll(outputDir, 0o755); err != nil {
-		return err
+		return nil, err
 	}
-	summaryPath := outputDir + "/metric_usage_summary.json"
-	unusedPath := outputDir + "/metric_usage_unused_series.json"
-	unusedByCostPath := outputDir + "/metric_usage_unused_by_cost.json"
-	unusedByCostCSVPath := outputDir + "/metric_usage_unused_by_cost.csv"
+	join := func(base string) (string, string) {
+		name := base
+		if filenamePrefix != "" {
+			name = filenamePrefix + "-" + base
+		}
+		return name, outputDir + "/" + name
+	}
 
+	var written []string
+
+	summaryName, summaryPath := join("metric_usage_summary.json")
 	summary, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := os.WriteFile(summaryPath, summary, 0o644); err != nil {
-		return err
+		return nil, err
 	}
+	written = append(written, summaryName)
 
+	unusedName, unusedPath := join("metric_usage_unused_series.json")
 	unused, err := json.MarshalIndent(r.UnusedSeriesInCatalog, "", "  ")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := os.WriteFile(unusedPath, unused, 0o644); err != nil {
-		return err
+		return nil, err
 	}
+	written = append(written, unusedName)
 
 	unusedByCost := make([]UnusedSeries, len(r.UnusedSeriesInCatalog))
 	copy(unusedByCost, r.UnusedSeriesInCatalog)
@@ -183,42 +195,51 @@ func (r *Report) Write(outputDir string) error {
 	}
 	costRows := unusedRowsFromSeries(unusedByCost, splitN)
 
+	byCostName, byCostPath := join("metric_usage_unused_by_cost.json")
 	byCost, err := json.MarshalIndent(costRows, "", "  ")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if err := os.WriteFile(unusedByCostPath, byCost, 0o644); err != nil {
-		return err
+	if err := os.WriteFile(byCostPath, byCost, 0o644); err != nil {
+		return nil, err
 	}
+	written = append(written, byCostName)
 
-	if err := WriteUnusedByCostCSV(unusedByCostCSVPath, costRows); err != nil {
-		return err
+	byCostCSVName, byCostCSVPath := join("metric_usage_unused_by_cost.csv")
+	if err := WriteUnusedByCostCSV(byCostCSVPath, costRows); err != nil {
+		return nil, err
 	}
+	written = append(written, byCostCSVName)
 
 	byMetric := AggregateUnusedByMetric(costRows)
-	byMetricPath := outputDir + "/metric_usage_unused_by_metric.json"
-	byMetricCSVPath := outputDir + "/metric_usage_unused_by_metric.csv"
+	byMetricName, byMetricPath := join("metric_usage_unused_by_metric.json")
 	byMetricJSON, err := json.MarshalIndent(byMetric, "", "  ")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := os.WriteFile(byMetricPath, byMetricJSON, 0o644); err != nil {
-		return err
+		return nil, err
 	}
+	written = append(written, byMetricName)
+
+	byMetricCSVName, byMetricCSVPath := join("metric_usage_unused_by_metric.csv")
 	if err := WriteUnusedByMetricCSV(byMetricCSVPath, byMetric); err != nil {
-		return err
+		return nil, err
 	}
+	written = append(written, byMetricCSVName)
 
 	allByMetric := AggregateAllByMetric(r.UsedSeriesInCatalog, r.UnusedSeriesInCatalog)
-	allByMetricCSVPath := outputDir + "/metric_usage_all_by_metric.csv"
+	allByMetricCSVName, allByMetricCSVPath := join("metric_usage_all_by_metric.csv")
 	if err := WriteAllByMetricCSV(allByMetricCSVPath, allByMetric); err != nil {
-		return err
+		return nil, err
 	}
+	written = append(written, allByMetricCSVName)
 
-	otelPath := outputDir + "/metric_usage_otel_processors.yaml"
+	otelName, otelPath := join("metric_usage_otel_processors.yaml")
 	if err := WriteOTELUnusedProcessorsYAML(otelPath, r.UsedSeriesInCatalog, r.UnusedSeriesInCatalog); err != nil {
-		return err
+		return nil, err
 	}
+	written = append(written, otelName)
 
-	return nil
+	return written, nil
 }
