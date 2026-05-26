@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package com.coralogixapis.aaa.organisations.v2;
+
+option go_package = "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/cxteams;cxteams";
+
+// TeamId is the numeric identifier for a Coralogix team.
+message TeamId {
+  uint32 id = 1;
+}

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package com.coralogixapis.aaa.organisations.v2;
+
+import "com/coralogixapis/aaa/organisations/v2/types.proto";
+
+option go_package = "github.com/BigRedS/coralogix-unused-metrics-finder/internal/gen/cxteams;cxteams";
+
+// Subset of the upstream TeamService that we actually call. We only need ListTeams to
+// retrieve the team name attached to the API key; the rest of the upstream surface
+// (create, update, quota management, etc.) is intentionally omitted.
+service TeamService {
+  rpc ListTeams(ListTeamsRequest) returns (ListTeamsResponse) {}
+}
+
+message ListTeamsRequest {}
+
+message ListTeamsResponse {
+  message TeamInfo {
+    TeamId team_id = 1;
+    string team_name = 2;
+    double daily_quota = 3;
+    int32 retention = 4;
+  }
+  TeamInfo default_team = 1;
+  repeated TeamInfo teams = 2;
+}

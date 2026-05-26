@@ -11,10 +11,30 @@ import (
 	"time"
 
 	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/coralogix"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/cxteams"
 	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/metricusage"
 	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/region"
 	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/scan"
 )
+
+// resolveTeamFilenamePrefix attempts to discover the Coralogix team name attached to
+// the API key and returns a filesystem-safe prefix to prepend to output files. Any
+// failure (PermissionDenied, network, empty response) yields "" so the caller falls
+// back to unprefixed filenames — team-name lookup is a nice-to-have, not required.
+func resolveTeamFilenamePrefix(ctx context.Context, apiHost, apiKey string) string {
+	tc, err := cxteams.NewClient(apiHost, apiKey)
+	if err != nil {
+		return ""
+	}
+	defer tc.Close()
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	name, err := tc.FetchTeamName(cctx)
+	if err != nil || name == "" {
+		return ""
+	}
+	return cxteams.SanitizeForFilename(name)
+}
 
 func runDebugBilling(ctx context.Context, billing *metricusage.Client, metric string, usageDays, usageMonths int) int {
 	now := time.Now().UTC().Truncate(24 * time.Hour)
@@ -148,19 +168,19 @@ func run() int {
 		return 1
 	}
 
-	if err := rep.Write(*outputDir); err != nil {
+	teamPrefix := resolveTeamFilenamePrefix(ctx, apiHost, *keyFlag)
+	if teamPrefix != "" {
+		fmt.Fprintf(os.Stderr, "Using team-name prefix %q on output files.\n", teamPrefix)
+	}
+
+	written, err := rep.Write(*outputDir, teamPrefix)
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "write output:", err)
 		return 1
 	}
-
-	fmt.Printf("Wrote %s/metric_usage_summary.json\n", *outputDir)
-	fmt.Printf("Wrote %s/metric_usage_unused_series.json\n", *outputDir)
-	fmt.Printf("Wrote %s/metric_usage_unused_by_cost.json\n", *outputDir)
-	fmt.Printf("Wrote %s/metric_usage_unused_by_cost.csv\n", *outputDir)
-	fmt.Printf("Wrote %s/metric_usage_unused_by_metric.json\n", *outputDir)
-	fmt.Printf("Wrote %s/metric_usage_unused_by_metric.csv\n", *outputDir)
-	fmt.Printf("Wrote %s/metric_usage_all_by_metric.csv\n", *outputDir)
-	fmt.Printf("Wrote %s/metric_usage_otel_processors.yaml\n", *outputDir)
+	for _, name := range written {
+		fmt.Printf("Wrote %s/%s\n", *outputDir, name)
+	}
 	m := rep.Meta
 	fmt.Printf(
 		"Scanned dashboards=%d alerts=%d slos=%d; catalog series=%d; used=%d; unused=%d; "+

@@ -20,27 +20,16 @@ import (
 	"time"
 
 	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/coralogix"
+	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/cxteams"
 	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/metricusage"
 	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/region"
 	"github.com/BigRedS/coralogix-unused-metrics-finder/internal/scan"
 )
 
-const otelProcessorsYAML = "metric_usage_otel_processors.yaml"
+const otelProcessorsBase = "metric_usage_otel_processors.yaml"
 
 //go:embed index.html
 var indexHTML []byte
-
-// Output files from report.Report.Write (basename only).
-var allowedDownloads = []string{
-	"metric_usage_summary.json",
-	"metric_usage_unused_series.json",
-	"metric_usage_unused_by_cost.json",
-	"metric_usage_unused_by_cost.csv",
-	"metric_usage_unused_by_metric.json",
-	"metric_usage_unused_by_metric.csv",
-	"metric_usage_all_by_metric.csv",
-	otelProcessorsYAML,
-}
 
 func main() {
 	listen := flag.String("listen", "localhost:8765", "HTTP listen address")
@@ -201,12 +190,32 @@ func (reg *registry) runScan(j *job, apiHost, apiKey string) {
 		_ = os.RemoveAll(dir)
 		return
 	}
-	if err := rep.Write(dir); err != nil {
+	teamPrefix := resolveTeamFilenamePrefix(ctx, apiHost, apiKey)
+	written, err := rep.Write(dir, teamPrefix)
+	if err != nil {
 		j.fail(fmt.Errorf("write: %w", err))
 		_ = os.RemoveAll(dir)
 		return
 	}
+	j.setFiles(written)
 	j.setStatus("done")
+}
+
+// resolveTeamFilenamePrefix mirrors the CLI behavior: try ListTeams, return a sanitized
+// prefix, fall back to empty string on any failure so the scan still produces output.
+func resolveTeamFilenamePrefix(ctx context.Context, apiHost, apiKey string) string {
+	tc, err := cxteams.NewClient(apiHost, apiKey)
+	if err != nil {
+		return ""
+	}
+	defer tc.Close()
+	cctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	name, err := tc.FetchTeamName(cctx)
+	if err != nil || name == "" {
+		return ""
+	}
+	return cxteams.SanitizeForFilename(name)
 }
 
 func (reg *registry) handleJobStatus(w http.ResponseWriter, r *http.Request) {
@@ -227,7 +236,7 @@ func (reg *registry) handleJobStatus(w http.ResponseWriter, r *http.Request) {
 		out["error"] = errMsg
 	}
 	if st == "done" {
-		out["files"] = allowedDownloads
+		out["files"] = j.getFiles()
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(out)
@@ -240,18 +249,6 @@ func (reg *registry) handleDownload(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	ok := false
-	for _, a := range allowedDownloads {
-		if a == base {
-			ok = true
-			break
-		}
-	}
-	if !ok {
-		http.NotFound(w, r)
-		return
-	}
-
 	reg.mu.Lock()
 	j, ok := reg.jobs[id]
 	reg.mu.Unlock()
@@ -263,6 +260,18 @@ func (reg *registry) handleDownload(w http.ResponseWriter, r *http.Request) {
 	st, _ := j.snapshot()
 	if st != "done" {
 		http.Error(w, "job not finished", http.StatusConflict)
+		return
+	}
+
+	allowed := false
+	for _, f := range j.getFiles() {
+		if f == base {
+			allowed = true
+			break
+		}
+	}
+	if !allowed {
+		http.NotFound(w, r)
 		return
 	}
 
@@ -300,7 +309,14 @@ func (reg *registry) handleOTELYAMLPreview(w http.ResponseWriter, r *http.Reques
 		http.NotFound(w, r)
 		return
 	}
-	path := filepath.Join(dir, otelProcessorsYAML)
+	otelName := otelProcessorsBase
+	for _, f := range j.getFiles() {
+		if strings.HasSuffix(f, otelProcessorsBase) {
+			otelName = f
+			break
+		}
+	}
+	path := filepath.Join(dir, otelName)
 	b, err := os.ReadFile(path)
 	if err != nil {
 		http.NotFound(w, r)
@@ -317,6 +333,7 @@ type job struct {
 	status  string
 	errMsg  string
 	dir     string
+	files   []string
 	created time.Time
 }
 
@@ -336,6 +353,18 @@ func (j *job) getDir() string {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	return j.dir
+}
+
+func (j *job) setFiles(files []string) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	j.files = append([]string(nil), files...)
+}
+
+func (j *job) getFiles() []string {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	return append([]string(nil), j.files...)
 }
 
 func (j *job) fail(err error) {
